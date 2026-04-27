@@ -1,29 +1,33 @@
 import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  restaurant: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Restaurant",
-  },
-  items: [
-    {
-      menuItem: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "MenuItem",
+const orderSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+    
+    // ✅ TOP LEVEL FIELDS (This is what was missing)
+    customerName: String,
+    customerEmail: String,
+    customerPhone: String,
+    shippingAddress: String,
+    pincode: String, // Added as requested
+    
+    items: [
+      {
+        product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+        name: String,
+        quantity: Number,
+        price: Number,
       },
-      qty: Number,
+    ],
+    totalAmount: Number,
+    status: {
+      type: String,
+      enum: ["pending", "processing", "delivered"],
+      default: "pending",
     },
-  ],
-  totalAmount: Number,
-  status: {
-    type: String,
-    enum: ["processing", "confirmed", "delivered"],
-    default: "processing",
   },
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 export default mongoose.model("Order", orderSchema);
