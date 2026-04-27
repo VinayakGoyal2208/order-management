@@ -1,12 +1,18 @@
 import axios from "axios";
 
+const BASE_URL = window.location.hostname === "localhost" 
+  ? "http://localhost:5000/api" 
+  : "https://order-management-backend-uqtn.onrender.com";
+
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: BASE_URL,
 });
 
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
-  if (token) req.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    req.headers.Authorization = `Bearer ${token}`;
+  }
   return req;
 });
 
