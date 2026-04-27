@@ -4,8 +4,8 @@ import {
   getVendors,
   deleteVendor,
 } from "../controllers/vendor.controller.js";
-import { protect } from "../middleware/auth.middleware.js";
-import { authorize } from "../middleware/role.middleware.js";
+import { protect } from "../middleware/auth.Middleware.js";
+import { authorize } from "../middleware/role.Middleware.js";
 
 const router = express.Router();
 

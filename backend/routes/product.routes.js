@@ -4,7 +4,7 @@ import {
   getVendorProducts,
   deleteProduct,
 } from "../controllers/product.controller.js";
-import { protect } from "../middleware/auth.middleware.js";
+import { protect } from "../middleware/auth.Middleware.js";
 
 const router = express.Router();
 
