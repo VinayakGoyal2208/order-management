@@ -1,50 +1,56 @@
-import { useState } from "react";
-import { CartContext } from "./cartContextbase";
+import { createContext, useState, useEffect } from "react";
+
+const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
 
-  const addToCart = (item) => {
-    setCart((prev) => {
-      const exist = prev.find((i) => i._id === item._id);
-
-      if (exist) {
-        return prev.map((i) =>
-          i._id === item._id ? { ...i, qty: i.qty + 1 } : i
-        );
+  // 1. Initialize cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem("b2b_cart");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (err) {
+        console.error("Failed to parse cart data", err);
       }
+    }
+  }, []);
 
-      return [...prev, { ...item, qty: 1 }];
+  // 2. Helper to update state and storage simultaneously
+  const updateCart = (newCart) => {
+    setCart(newCart);
+    localStorage.setItem("b2b_cart", JSON.stringify(newCart));
+  };
+
+  const addToCart = (product) => {
+    setCart((prevCart) => {
+      const exists = prevCart.find((item) => item._id === product._id);
+      if (exists) {
+        alert("This item is already in your cart.");
+        return prevCart;
+      }
+      
+      const newCart = [...prevCart, product];
+      localStorage.setItem("b2b_cart", JSON.stringify(newCart));
+      return newCart;
     });
   };
 
   const removeFromCart = (id) => {
-    setCart((prev) => prev.filter((i) => i._id !== id));
+    const newCart = cart.filter((item) => item._id !== id);
+    updateCart(newCart);
   };
 
-  const updateQty = (id, type) => {
-    setCart((prev) =>
-      prev.map((i) =>
-        i._id === id
-          ? {
-              ...i,
-              qty: type === "inc" ? i.qty + 1 : Math.max(1, i.qty - 1),
-            }
-          : i
-      )
-    );
+  const clearCart = () => {
+    updateCart([]);
   };
-
-  const total = cart.reduce(
-    (acc, item) => acc + item.price * item.qty,
-    0
-  );
 
   return (
-    <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQty, total }}
-    >
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
       {children}
     </CartContext.Provider>
   );
 };
+
+export default CartContext;

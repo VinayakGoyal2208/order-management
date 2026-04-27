@@ -1,49 +1,161 @@
+import Layout from "../../components/common/Layout";
 import { useEffect, useState } from "react";
-import { getAdminStats } from "../../api/admin.api";
-import Sidebar from "../../components/Sidebar";
+import API from "../../services/api";
+import StatCard from "../../components/cards/StatCard";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LayoutDashboard, RefreshCcw, TrendingUp } from "lucide-react";
 
-export default function Dashboard() {
-  const [stats, setStats] = useState({});
+export default function AdminDashboard() {
+  const [userCount, setUserCount] = useState(0);
+  const [vendorCount, setVendorCount] = useState(0);
+  const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await getAdminStats();
-        setStats(data);
-      } catch (err) {
-        console.log("Stats error:", err);
-      }
-    };
 
-    fetchStats();
+    useEffect(() => {
+    fetchDashboardData();
   }, []);
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [usersRes, vendorsRes] = await Promise.all([
+        API.get("/users"),
+        API.get("/vendors")
+      ]);
+
+      setUserCount(usersRes.data.length);
+      setVendorCount(vendorsRes.data.length);
+
+      const chartRes = await API.get("/orders/stats");
+      setChartData(chartRes.data);
+    } catch (err) {
+      console.error("Database fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   return (
-    <div className="flex">
-
-      {/* SIDEBAR */}
-      <Sidebar />
-
-      {/* MAIN CONTENT */}
-      <div className="flex-1 p-6 bg-gray-100 min-h-screen">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-
-        <div className="grid md:grid-cols-4 gap-6">
-          <Card title="Users" value={stats.users || 0} />
-          <Card title="Restaurants" value={stats.restaurants || 0} />
-          <Card title="Orders" value={stats.orders || 0} />
-          <Card title="Revenue" value={`₹${stats.revenue || 0}`} />
+    <Layout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 flex items-center gap-3">
+              <LayoutDashboard className="text-emerald-600" size={28} /> Dashboard
+            </h1>
+            <p className="text-slate-500 text-sm font-medium mt-1">Real-time overview of your B2B ecosystem.</p>
+          </div>
+          
+          <button 
+            onClick={fetchDashboardData}
+            className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-black text-slate-600 hover:bg-slate-50 active:scale-95 transition-all shadow-sm"
+          >
+            <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
+            REFRESH DATA
+          </button>
         </div>
-      </div>
-    </div>
-  );
-}
 
-function Card({ title, value }) {
-  return (
-    <div className="bg-white p-6 rounded-xl shadow text-center">
-      <p className="text-gray-500">{title}</p>
-      <h2 className="text-2xl font-bold mt-2">{value}</h2>
-    </div>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-32">
+            <div className="w-12 h-12 border-4 border-slate-100 border-t-emerald-500 rounded-full animate-spin mb-4" />
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Syncing Database...</p>
+          </div>
+        ) : (
+          <>
+            {/* Stat Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+              <StatCard 
+                title="Total Users" 
+                value={userCount} 
+                change="+10%" 
+                isUp={true} 
+              />
+              <StatCard 
+                title="Total Vendors" 
+                value={vendorCount} 
+                change="+5%" 
+                isUp={true} 
+              />
+              {/* Added a placeholder 3rd card to balance the grid on desktop */}
+              <div className="hidden lg:block">
+                <StatCard 
+                  title="System Health" 
+                  value="99.9%" 
+                  change="Optimal" 
+                  isUp={true} 
+                />
+              </div>
+            </div>
+
+            {/* Chart Section */}
+            <div className="bg-white p-5 md:p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-50">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                    <TrendingUp size={20} className="text-emerald-500" /> Growth Overview
+                  </h2>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order volume over time</p>
+                </div>
+              </div>
+
+              <div className="h-[250px] md:h-[350px] w-full">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis 
+                        dataKey="date" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}}
+                        dy={10}
+                      />
+                      <YAxis 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          borderRadius: '16px', 
+                          border: 'none', 
+                          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }} 
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="count" 
+                        stroke="#10b981" 
+                        strokeWidth={4} 
+                        dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full border-2 border-dashed border-slate-50 rounded-[2rem]">
+                    <div className="bg-slate-50 p-4 rounded-full mb-3 text-slate-300">
+                      <TrendingUp size={32} />
+                    </div>
+                    <p className="text-slate-400 text-sm font-bold uppercase tracking-tighter">Waiting for transaction data...</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </Layout>
   );
 }

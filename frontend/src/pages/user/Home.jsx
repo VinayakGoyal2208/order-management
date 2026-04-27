@@ -1,178 +1,136 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { getRestaurants } from "../../api/user.api";
-import { useAuth } from "../../hooks/useAuth";
+import API from "../../services/api";
+import VendorCard from "../../components/cards/VendorCard";
+import Layout from "../../components/common/Layout";
+import { useNavigate } from "react-router-dom";
+import { Search, Filter, ArrowRight } from "lucide-react";
 
 export default function Home() {
-  const [restaurants, setRestaurants] = useState([]);
-  const { user } = useAuth();
+  const [vendors, setVendors] = useState([]);
+  const [searchInput, setSearchInput] = useState(""); 
+  const [searchTerm, setSearchTerm] = useState("");   
 
-  // 🔥 FETCH FROM BACKEND
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getRestaurants();
-        setRestaurants(data);
-      } catch (err) {
-        console.log("Error fetching restaurants:", err);
-      }
-    };
-
-    fetchData();
+    API.get("/vendors")
+      .then(res => setVendors(res.data))
+      .catch(() => setVendors([]));
   }, []);
 
+  // 🔍 FILTER LOGIC (SAFE + MULTI FIELD)
+  const filteredVendors = vendors.filter(v => {
+    if (!searchTerm) return true;
+
+    const term = searchTerm.toLowerCase();
+
+    return (
+      v?.business?.companyName?.toLowerCase().includes(term) ||
+      v?.category?.toLowerCase().includes(term) ||
+      v?.business?.address?.toLowerCase().includes(term)
+    );
+  });
+
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <Layout>
 
-      {/* 🔝 NAVBAR */}
-      <div className="flex flex-col md:flex-row justify-between items-center px-6 md:px-10 py-4 bg-white shadow gap-4">
-        <h1 className="text-2xl font-bold text-green-600">
-          🍔 FoodHub
-        </h1>
+      {/* ================= HERO ================= */}
+      <div className="relative bg-slate-900 rounded-3xl p-10 mb-10 overflow-hidden">
+        <div className="relative z-10 max-w-2xl">
+          <h1 className="text-4xl font-extrabold text-white mb-4 leading-tight">
+            Source Quality Products from{" "}
+            <span className="text-green-500">Verified Vendors</span>
+          </h1>
 
-        <div className="flex items-center gap-3 w-full md:w-1/2">
-          <input
-            type="text"
-            placeholder="Search restaurants..."
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
-          />
+          <p className="text-slate-300 text-lg mb-8">
+            The largest B2B network for wholesale supply chains.
+          </p>
 
-          {!user ? (
-            <Link to="/login">
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                Login
-              </button>
-            </Link>
-          ) : (
-            <div className="flex items-center gap-3">
-              {/* USER NAME */}
-              <span className="text-sm font-medium text-gray-600">
-                👋 {user.user?.name}
-              </span>
+          {/* 🔍 SEARCH BAR */}
+          <div className="flex bg-white p-2 rounded-2xl shadow-xl max-w-md">
+            <Search className="text-gray-400 m-2" />
 
-              {/* LOGOUT BUTTON */}
-              <button
-                onClick={() => {
-                  localStorage.removeItem("user");
-                  window.location.reload(); // simple reset
-                }}
-                className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+            <input
+              type="text"
+              placeholder="Search vendors, category, location..."
+              className="flex-1 outline-none text-gray-700"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") setSearchTerm(searchInput);
+              }}
+            />
+
+            <button
+              onClick={() => setSearchTerm(searchInput)}
+              className="bg-green-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-700 transition"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-green-500/10 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="flex gap-8">
+
+        {/* ================= SIDEBAR ================= */}
+        <aside className="w-64 hidden lg:block">
+          <div className="bg-white p-6 rounded-2xl border shadow-sm sticky top-24">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Filter size={18} /> Categories
+            </h3>
+
+            {["All", "Electronics", "Manufacturing", "Food", "Textiles"].map(cat => (
+              <div
+                key={cat}
+                onClick={() => setSearchTerm(cat === "All" ? "" : cat)}
+                className="flex justify-between items-center cursor-pointer text-gray-500 hover:text-green-600 mb-3 group"
               >
-                Logout
-              </button>
+                {cat}
+                <ArrowRight size={14} className="opacity-0 group-hover:opacity-100" />
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* ================= MAIN ================= */}
+        <div className="flex-1">
+
+          <div className="flex justify-between items-end mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">
+                Featured Suppliers
+              </h2>
+              <p className="text-gray-500 text-sm">
+                Showing {filteredVendors.length} results
+              </p>
+            </div>
+          </div>
+
+          {/* ================= GRID ================= */}
+          {filteredVendors.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    {filteredVendors.map(v => (
+      <VendorCard
+        key={v._id}
+        vendor={{
+          ...v, // 1. This keeps ALL your existing data (name, address, etc.)
+          image: v.image || null, // 2. This ensures the image is picked up from the DB
+        }}
+        onClick={() => navigate(`/vendor/${v._id}`)}
+      />
+    ))}
+  </div>
+          ) : (
+            <div className="text-center text-gray-500 mt-10">
+              No vendors found for "<span className="font-semibold">{searchTerm}</span>"
             </div>
           )}
+
         </div>
       </div>
-
-      {/* 🎯 HERO */}
-      <div className="px-6 md:px-10 py-14 text-center">
-        <h1 className="text-2xl md:text-4xl font-bold mb-4">
-          Simplify Bulk Food Ordering 🍽️
-        </h1>
-
-        <p className="text-gray-600 max-w-xl mx-auto text-sm md:text-base">
-          Order from multiple restaurants, manage bulk orders, and streamline
-          your business food supply — all in one place.
-        </p>
-      </div>
-
-      {/* 🍽️ RESTAURANTS */}
-      <div className="max-w-6xl mx-auto px-6 mb-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg md:text-xl font-semibold">
-            Restaurants Taking Orders
-          </h2>
-        </div>
-
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {restaurants.map((res) => (
-            <div
-              key={res._id}
-              className="bg-white rounded-xl shadow hover:shadow-xl transform hover:-translate-y-1 transition duration-300"
-            >
-              <img
-                src={
-                  res.image ||
-                  "https://via.placeholder.com/300x200?text=Restaurant"
-                }
-                className="w-full h-44 object-cover rounded-t-xl"
-                alt={res.name}
-              />
-
-              <div className="p-4">
-                <h3 className="font-semibold text-lg">
-                  {res.name}
-                </h3>
-
-                <p className="text-sm text-gray-500">
-                  {res.address || "Location not available"}
-                </p>
-
-                <div className="flex justify-between items-center mt-2 text-sm">
-                  <span>⭐ {res.rating || 4.5}</span>
-
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${res.status === "Open"
-                        ? "bg-green-100 text-green-600"
-                        : "bg-red-100 text-red-600"
-                      }`}
-                  >
-                    {res.status || "Open"}
-                  </span>
-                </div>
-
-                {/* 🔐 ACCESS CONTROL */}
-                {user ? (
-                  <Link to={`/menu/${res._id}`}>
-                    <button
-                      disabled={res.status === "Closed"}
-                      className={`mt-4 w-full py-2 rounded ${res.status === "Closed"
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-green-600 text-white hover:bg-green-700"
-                        }`}
-                    >
-                      {res.status === "Closed"
-                        ? "Closed"
-                        : "View Menu"}
-                    </button>
-                  </Link>
-                ) : (
-                  <Link to="/login">
-                    <button className="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-                      Login to Order
-                    </button>
-                  </Link>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ⚙️ HOW IT WORKS */}
-      <div className="bg-white py-12 px-6">
-        <h2 className="text-center text-lg md:text-xl font-semibold mb-8">
-          How It Works
-        </h2>
-
-        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          {[
-            { icon: "🍽️", title: "Choose Restaurant" },
-            { icon: "🛒", title: "Add to Cart" },
-            { icon: "💳", title: "Place Order" },
-            { icon: "🚚", title: "Get Delivered" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-gray-50 p-6 rounded-xl shadow text-center hover:shadow-md transition"
-            >
-              <p className="text-3xl">{item.icon}</p>
-              <p className="font-medium mt-3">{item.title}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    </Layout>
   );
 }

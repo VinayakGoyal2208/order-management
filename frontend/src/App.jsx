@@ -1,84 +1,136 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./hooks/useAuth";
+import { Routes, Route } from "react-router-dom";
 
-import Login from "./pages/auth/Login";
-
-// USER
 import Home from "./pages/user/Home";
-import Menu from "./pages/user/Menu";
+import VendorDetails from "./pages/user/VendorDetails";
 import Cart from "./pages/user/Cart";
 import Orders from "./pages/user/Orders";
+import Profile from "./pages/user/Profile";
 
-// ADMIN
+import VendorDashboard from "./pages/vendor/Dashboard";
+import VendorOrders from "./pages/vendor/Orders";
+import Products from "./pages/vendor/Products";
+import AddProduct from "./pages/vendor/AddProduct";
+
 import AdminDashboard from "./pages/admin/Dashboard";
-import ManageUsers from "./pages/admin/ManageUsers";
-import ManageRestaurants from "./pages/admin/ManageRestaurants";
-import CreateRestaurant from "./pages/admin/CreateRestaurant";
+import Users from "./pages/admin/Users";
+import Vendors from "./pages/admin/Vendors";
+import AddVendor from "./pages/admin/AddVendor";
 
-// RESTAURANT
-import RestaurantDashboard from "./pages/restaurant/Dashboard";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+
+import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 function App() {
-  const { user } = useAuth();
-
   return (
     <Routes>
-      {/* PUBLIC */}
-      <Route path="/" element={<Home />} />
-      <Route
-        path="/menu/:id"
-        element={user ? <Menu /> : <Navigate to="/login" />}
-      />
-      <Route path="/login" element={<Login />} />
 
-      {/* USER PROTECTED */}
+      {/* ================= USER (PUBLIC) ================= */}
+      <Route path="/" element={<Home />} />
+      <Route path="/vendor/:id" element={<VendorDetails />} />
+
+      {/* ================= AUTH ================= */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      {/* ================= USER (PROTECTED) ================= */}
       <Route
         path="/cart"
-        element={user ? <Cart /> : <Navigate to="/login" />}
+        element={
+          <ProtectedRoute role="user">
+            <Cart />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/orders"
-        element={user ? <Orders /> : <Navigate to="/login" />}
+        element={
+          <ProtectedRoute role="user">
+            <Orders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute role="user">
+            <Profile />
+          </ProtectedRoute>
+        }
       />
 
-      {/* ROLE BASED */}
+      {/* ================= VENDOR ================= */}
       <Route
-        path="/admin"
+        path="/vendor-dashboard"
         element={
-          user?.role === "admin" ? (
+          <ProtectedRoute role="vendor">
+            <VendorDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vendor-orders"
+        element={
+          <ProtectedRoute role="vendor">
+            <VendorOrders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vendor-products"
+        element={
+          <ProtectedRoute role="vendor">
+            <Products />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/add-product"
+        element={
+          <ProtectedRoute role="vendor">
+            <AddProduct />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ================= ADMIN ================= */}
+      <Route
+        path="/admin-dashboard"
+        element={
+          <ProtectedRoute role="admin">
             <AdminDashboard />
-          ) : (
-            <Navigate to="/" />
-          )
+          </ProtectedRoute>
         }
       />
       <Route
-        path="/admin/users"
-        element={<ManageUsers />}
-      />
-
-      <Route
-        path="/admin/restaurants"
-        element={ <ManageRestaurants />}
-      />
-
-      <Route
-        path="/admin/create-restaurant"
-        element={<CreateRestaurant />}
-      />
-
-
-
-      <Route
-        path="/restaurant"
+        path="/admin-users"
         element={
-          user?.role === "restaurant" ? (
-            <RestaurantDashboard />
-          ) : (
-            <Navigate to="/" />
-          )
+          <ProtectedRoute role="admin">
+            <Users />
+          </ProtectedRoute>
         }
       />
+      <Route
+        path="/admin-vendors"
+        element={
+          <ProtectedRoute role="admin">
+            <Vendors />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/add-vendor"
+        element={
+          <ProtectedRoute role="admin">
+            <AddVendor />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ================= FALLBACK ================= */}
+      <Route path="*" element={<NotFound />} />
+
     </Routes>
   );
 }
