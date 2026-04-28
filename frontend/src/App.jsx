@@ -18,6 +18,7 @@ import AddVendor from "./pages/admin/AddVendor";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -33,6 +34,7 @@ function App() {
       {/* ================= AUTH ================= */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword/>}/>
 
       {/* ================= USER (PROTECTED) ================= */}
       <Route

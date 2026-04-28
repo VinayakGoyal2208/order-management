@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 
-export default function LoginForm({ onSubmit }) {
+export default function LoginForm({ onSubmit, onForgotPassword }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,6 +26,7 @@ export default function LoginForm({ onSubmit }) {
             type="email"
             placeholder="name@company.com"
             className="block w-full pl-11 pr-4 py-3 md:py-2.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all text-sm md:text-base"
+            value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
         </div>
@@ -47,9 +48,9 @@ export default function LoginForm({ onSubmit }) {
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             className="block w-full pl-11 pr-12 py-3 md:py-2.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all text-sm md:text-base"
+            value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
-          {/* Toggle Password Visibility - Great for Mobile Users */}
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
@@ -58,6 +59,17 @@ export default function LoginForm({ onSubmit }) {
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
+      </div>
+
+      {/* Forgot Password Link */}
+      <div className="flex justify-end px-1">
+        <button 
+          type="button"
+          onClick={onForgotPassword}
+          className="text-[11px] md:text-xs font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-wider transition-colors"
+        >
+          Forgot password?
+        </button>
       </div>
 
       {/* Submit Button */}

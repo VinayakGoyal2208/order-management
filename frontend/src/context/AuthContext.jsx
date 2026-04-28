@@ -4,25 +4,30 @@ const AuthContext = createContext();
 export default AuthContext;
 
 export const AuthProvider = ({ children }) => {
-  // Initialize state: Check if token exists, otherwise set to null
   const [user, setUser] = useState(() => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
-    const name = localStorage.getItem("name"); // Added name for the Navbar UI
+    const name = localStorage.getItem("name");
+    const email = localStorage.getItem("email"); 
 
-    // Only return an object if a token actually exists
-    return token ? { token, role, name } : null;
+    return token ? { token, role, name, email } : null;
   });
 
   const login = (data) => {
+    if (!data || !data.user) {
+        console.error("Login failed: Data or User object missing", data);
+        return;
+    }
     localStorage.setItem("token", data.token);
     localStorage.setItem("role", data.role);
-    localStorage.setItem("name", data.user.name); // Store name for UI
+    localStorage.setItem("name", data.user.name);
+    localStorage.setItem("email", data.user.email); 
 
     setUser({
       token: data.token,
       role: data.role,
       name: data.user.name,
+      email: data.user.email, 
     });
   };
 
@@ -30,10 +35,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("name");
+    localStorage.removeItem("email"); 
     setUser(null);
   };
 
-  // Optional: Sync tabs (If you logout in one tab, logout in all)
   useEffect(() => {
     const handleStorageChange = () => {
       if (!localStorage.getItem("token")) {

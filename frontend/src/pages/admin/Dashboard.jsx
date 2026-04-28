@@ -15,28 +15,32 @@ export default function AdminDashboard() {
     useEffect(() => {
     fetchDashboardData();
   }, []);
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [usersRes, vendorsRes] = await Promise.all([
-        API.get("/users"),
-        API.get("/vendors")
-      ]);
 
-      setUserCount(usersRes.data.length);
-      setVendorCount(vendorsRes.data.length);
+const fetchDashboardData = async () => {
+  try {
+    setLoading(true);
+    
+    // We call the newly mapped route
+    const [usersRes, vendorsRes, chartRes] = await Promise.all([
+      API.get("/users"),
+      API.get("/vendors/all-vendors"),
+      API.get("/orders/stats")
+    ]);
 
-      const chartRes = await API.get("/orders/stats");
-      setChartData(chartRes.data);
-    } catch (err) {
-      console.error("Database fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const actualUsers = usersRes.data.filter(u => 
+      u.role?.toLowerCase() === 'user'
+    );
 
+    setUserCount(actualUsers.length);
+    setVendorCount(vendorsRes.data.length);
+    setChartData(chartRes.data);
 
-
+  } catch (err) {
+    console.error("Dashboard Error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

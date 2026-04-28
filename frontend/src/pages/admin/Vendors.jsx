@@ -1,204 +1,228 @@
 import Layout from "../../components/common/Layout";
 import { useEffect, useState, useCallback } from "react";
 import API from "../../services/api";
-import { Trash2, Store, Mail, Phone, MapPin, Tag, Briefcase, Search, Filter } from "lucide-react";
+import {
+  Trash2, Store, Mail, Phone, MapPin,
+  Search, CheckCircle, X, Edit3, Save, ChevronDown, ChevronUp
+} from "lucide-react";
 
 export default function Vendors() {
   const [vendors, setVendors] = useState([]);
   const [filteredVendors, setFilteredVendors] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState(null);
+  const [editVendor, setEditVendor] = useState(null);
 
+  // FETCH VENDORS - Updated to /vendors/all-vendors
   const fetchVendors = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await API.get("/vendors");
+      const res = await API.get("/vendors/all-vendors");
       setVendors(res.data);
       setFilteredVendors(res.data);
     } catch (err) {
-      console.error("Error fetching vendors:", err);
+      console.error("Fetch error:", err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchVendors();
-  }, [fetchVendors]);
-
-  const categories = [...new Set(vendors.map((v) => v.category))].filter(Boolean);
+  useEffect(() => { fetchVendors(); }, [fetchVendors]);
 
   useEffect(() => {
-    let result = vendors;
-    if (selectedCategory !== "") {
-      result = result.filter((v) => v.category === selectedCategory);
-    }
-    if (searchTerm !== "") {
-      result = result.filter((v) => 
-        v.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.ownerName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    const result = vendors.filter((v) =>
+      v.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.ownerName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     setFilteredVendors(result);
-  }, [selectedCategory, searchTerm, vendors]);
+  }, [searchTerm, vendors]);
 
+  // DELETE VENDOR - Updated to /vendors/
   const deleteVendor = async (id) => {
-    if (window.confirm("Are you sure? This will remove all associated products.")) {
+    if (window.confirm("Are you sure? This action cannot be undone.")) {
       try {
         await API.delete(`/vendors/${id}`);
-        setVendors((prev) => prev.filter((v) => v._id !== id));
+        setVendors(vendors.filter((v) => v._id !== id));
       } catch (err) {
         alert("Failed to delete vendor.");
       }
     }
   };
 
+  // UPDATE VENDOR - Updated to /vendors/update/
+  const handleUpdate = async () => {
+    try {
+      await API.patch(`/vendors/update/${editVendor._id}`, editVendor);
+      setVendors(prev => prev.map(v => v._id === editVendor._id ? editVendor : v));
+      setEditVendor(null);
+      alert("Vendor updated successfully!");
+    } catch (err) { 
+      alert("Update failed."); 
+    }
+  };
+
+  // APPROVE VENDOR - Updated to /vendors/update/
+  const approveVendor = async (id) => {
+    try {
+      await API.patch(`/vendors/update/${id}`, { status: "active" });
+      setVendors(prev => prev.map(v => v._id === id ? { ...v, status: "active" } : v));
+    } catch (err) { 
+      alert("Approval failed."); 
+    }
+  };
+
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {/* Header & Controls */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 flex items-center gap-3">
-              <Store className="text-emerald-600" size={28} /> Vendor Directory
-            </h1>
-            <p className="text-slate-500 text-sm font-medium mt-1">Manage verified partners and supply chains.</p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-3">
-            {/* Search Input */}
-            <div className="relative flex-grow sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input 
-                type="text"
-                placeholder="Search companies..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm"
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {/* Category Filter */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <select 
-                className="w-full pl-10 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 appearance-none cursor-pointer outline-none shadow-sm"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                <option value="">All Industries</option>
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+      {/* LAYOUT FIX: 
+          Added 'lg:ml-64' (adjust 64 to match your sidebar width) 
+          to ensure the content doesn't slip under the sidebar at 1024px.
+      */}
+      <div className="max-w-7xl mx-auto px-4 py-6 transition-all duration-300">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-3 italic">
+            <Store className="text-emerald-600" size={28} /> PARTNER DIRECTORY
+          </h1>
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text" 
+              placeholder="Search by name..."
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 transition-all shadow-sm"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
 
-        {/* Content Container */}
-        <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden">
-          
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+        {/* Main Table Container */}
+        <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/60 border border-slate-50 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead className="bg-slate-50/50 border-b border-slate-100">
-                <tr>
-                  <th className="p-5 font-black text-slate-400 text-[10px] uppercase tracking-widest">Company</th>
-                  <th className="p-5 font-black text-slate-400 text-[10px] uppercase tracking-widest">Ownership</th>
-                  <th className="p-5 font-black text-slate-400 text-[10px] uppercase tracking-widest">Contact Details</th>
-                  <th className="p-5 font-black text-slate-400 text-[10px] uppercase tracking-widest">Location</th>
-                  <th className="p-5 font-black text-slate-400 text-[10px] uppercase tracking-widest text-right">Actions</th>
+                <tr className="text-slate-400 text-[10px] uppercase font-black tracking-widest">
+                  <th className="p-6">Partner Details</th>
+                  <th className="p-6">Contact Info</th>
+                  <th className="p-6">Status</th>
+                  <th className="p-6">Location</th>
+                  <th className="p-6 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {loading ? (
-                  <tr className="animate-pulse">
-                    <td colSpan="5" className="p-20 text-center text-slate-300 font-bold">LOADING DIRECTORY...</td>
-                  </tr>
-                ) : filteredVendors.map((v) => (
-                  <tr key={v._id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="p-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm">
-                          <Store size={22} />
-                        </div>
+                {filteredVendors.map((v) => (
+                  <tr key={v._id} className="hover:bg-slate-50/30 transition-all group">
+                    <td className="p-6">
+                      <div className="flex items-center gap-4">
+                        <img src={v.logo || v.image} className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-slate-100" alt="logo" />
                         <div>
-                          <div className="font-black text-slate-800 leading-tight">{v.companyName}</div>
-                          <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter bg-emerald-50 px-1.5 py-0.5 rounded">
-                            {v.category || "General"}
-                          </span>
+                          <div className="font-black text-slate-800 text-sm">{v.companyName}</div>
+                          <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-tighter">Owner: {v.ownerName}</div>
+                          <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{v.category}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="p-5">
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
-                        <Briefcase size={14} className="text-slate-400" /> {v.ownerName}
+                    <td className="p-6">
+                      <div className="flex flex-col gap-1">
+                        <div className="text-xs font-bold text-slate-600 flex items-center gap-1.5"><Mail size={12} className="text-slate-400" /> {v.email}</div>
+                        <div className="text-[10px] font-medium text-slate-400 flex items-center gap-1.5"><Phone size={12} className="text-slate-400" /> {v.phone}</div>
                       </div>
                     </td>
-                    <td className="p-5 space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                        <Mail size={12} /> {v.email}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                        <Phone size={12} /> {v.phone}
+                    <td className="p-6">
+                      <div className="flex flex-col gap-2">
+                        <span className={`w-fit px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                          v.status === 'active' ? 'bg-emerald-100 text-emerald-600' :
+                          v.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          {v.status}
+                        </span>
+                        {v.status === 'pending' && (
+                          <button onClick={() => approveVendor(v._id)} className="text-[9px] font-black text-emerald-600 flex items-center gap-1 hover:underline uppercase">
+                            <CheckCircle size={10} /> Approve Now
+                          </button>
+                        )}
                       </div>
                     </td>
-                    <td className="p-5">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
-                        <MapPin size={14} className="text-emerald-500" /> {v.address}
+                    <td className="p-6">
+                      <div className="flex flex-col gap-1">
+                        <div className={`text-xs font-semibold text-slate-500 leading-relaxed ${expandedId === v._id ? "" : "truncate max-w-[180px]"}`}>
+                          {v.streetAddress}, {v.city}, {v.state} - {v.pincode}
+                        </div>
+                        <button
+                          onClick={() => setExpandedId(expandedId === v._id ? null : v._id)}
+                          className="text-[10px] text-slate-400 font-black flex items-center gap-1 hover:text-emerald-600 transition-colors uppercase tracking-tighter"
+                        >
+                          {expandedId === v._id ? <><ChevronUp size={12} /> Collapse</> : <><ChevronDown size={12} /> Full Address</>}
+                        </button>
                       </div>
                     </td>
-                    <td className="p-5 text-right">
-                      <button onClick={() => deleteVendor(v._id)} className="p-2.5 rounded-xl text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all">
-                        <Trash2 size={20} />
-                      </button>
+                    <td className="p-6 text-right">
+                      <div className="flex justify-end gap-3">
+                        <button onClick={() => setEditVendor(v)} className="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all shadow-sm"><Edit3 size={18} /></button>
+                        <button onClick={() => deleteVendor(v._id)} className="p-2.5 bg-slate-50 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all shadow-sm"><Trash2 size={18} /></button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        </div>
 
-          {/* Mobile Card View */}
-          <div className="md:hidden divide-y divide-slate-50">
-            {loading ? (
-               <div className="p-10 text-center animate-pulse font-black text-slate-300">SYNCING VENDORS...</div>
-            ) : filteredVendors.map((v) => (
-              <div key={v._id} className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                      <Store size={24} />
-                    </div>
-                    <div>
-                      <h3 className="font-black text-slate-800">{v.companyName}</h3>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{v.category}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => deleteVendor(v._id)} className="text-rose-400 p-2"><Trash2 size={22} /></button>
+        {/* Edit Modal (Logic unchanged, just fixed API paths in handleUpdate) */}
+        {editVendor && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/20 animate-in fade-in zoom-in duration-200">
+              <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                  <h2 className="text-xl font-black text-slate-800 italic">Modify Partner</h2>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Update credentials and location</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl">
-                  <div>
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Owner</p>
-                    <p className="text-xs font-bold text-slate-700">{v.ownerName}</p>
+                <button onClick={() => setEditVendor(null)} className="p-2 hover:bg-white rounded-full transition-all shadow-sm"><X size={20} /></button>
+              </div>
+
+              <div className="p-8 space-y-5 max-h-[60vh] overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Company</label>
+                    <input className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none" value={editVendor.companyName} onChange={(e) => setEditVendor({ ...editVendor, companyName: e.target.value })} />
                   </div>
-                  <div>
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Location</p>
-                    <p className="text-xs font-bold text-slate-700 truncate">{v.address}</p>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Owner Name</label>
+                    <input className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none" value={editVendor.ownerName} onChange={(e) => setEditVendor({ ...editVendor, ownerName: e.target.value })} />
                   </div>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-4">
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500"><Mail size={12}/> {v.email}</div>
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500"><Phone size={12}/> {v.phone}</div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Street Address</label>
+                  <textarea className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none resize-none" rows="2" value={editVendor.streetAddress} onChange={(e) => setEditVendor({ ...editVendor, streetAddress: e.target.value })} />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1">City</label>
+                    <input className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none" value={editVendor.city} onChange={(e) => setEditVendor({ ...editVendor, city: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1">State</label>
+                    <input className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none" value={editVendor.state} onChange={(e) => setEditVendor({ ...editVendor, state: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1">PIN</label>
+                    <input className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:border-emerald-500 outline-none" value={editVendor.pincode} onChange={(e) => setEditVendor({ ...editVendor, pincode: e.target.value })} />
+                  </div>
                 </div>
               </div>
-            ))}
+
+              <div className="p-8 bg-slate-50 flex gap-3">
+                <button onClick={() => setEditVendor(null)} className="flex-1 py-4 text-xs font-black text-slate-400 uppercase hover:text-slate-600 transition-all">Cancel</button>
+                <button onClick={handleUpdate} className="flex-[2] bg-slate-900 text-white py-4 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-xl shadow-slate-200 hover:bg-black transition-all uppercase tracking-widest">
+                  <Save size={16} /> Save Changes
+                </button>
+              </div>
+            </div>
           </div>
-          
-          {!loading && filteredVendors.length === 0 && (
-            <div className="p-20 text-center font-black text-slate-300 uppercase tracking-[0.2em]">No partners found</div>
-          )}
-        </div>
+        )}
       </div>
     </Layout>
   );

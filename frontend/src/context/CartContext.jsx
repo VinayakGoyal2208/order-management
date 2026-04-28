@@ -23,18 +23,40 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("b2b_cart", JSON.stringify(newCart));
   };
 
+  // UPDATED: Now supports multiple additions of the same item
   const addToCart = (product) => {
     setCart((prevCart) => {
       const exists = prevCart.find((item) => item._id === product._id);
+      let newCart;
+
       if (exists) {
-        alert("This item is already in your cart.");
-        return prevCart;
+        // If it exists, map through and increase quantity
+        newCart = prevCart.map((item) =>
+          item._id === product._id 
+            ? { ...item, quantity: (item.quantity || 1) + 1 } 
+            : item
+        );
+      } else {
+        // If it's new, add it with initial quantity of 1
+        newCart = [...prevCart, { ...product, quantity: 1 }];
       }
-      
-      const newCart = [...prevCart, product];
+
       localStorage.setItem("b2b_cart", JSON.stringify(newCart));
       return newCart;
     });
+  };
+
+  // NEW: Function to manually change quantity (used in Cart.jsx)
+  const updateQuantity = (id, newQty) => {
+    if (newQty < 1) {
+      removeFromCart(id); // Remove if quantity goes below 1
+      return;
+    }
+    
+    const newCart = cart.map((item) =>
+      item._id === id ? { ...item, quantity: newQty } : item
+    );
+    updateCart(newCart);
   };
 
   const removeFromCart = (id) => {
@@ -47,7 +69,15 @@ export const CartProvider = ({ children }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
+    <CartContext.Provider 
+      value={{ 
+        cart, 
+        addToCart, 
+        removeFromCart, 
+        updateQuantity, // Added to provider
+        clearCart 
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

@@ -19,7 +19,14 @@ export default function VendorOrders() {
     useEffect(() => {
         API.get("/orders/vendor")
             .then(res => {
-                setOrders(res.data);
+                // --- NEWEST ORDER FIRST SORTING ---
+                const sortedData = res.data.sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt) : new Date(parseInt(a._id.substring(0, 8), 16) * 1000);
+                    const dateB = b.createdAt ? new Date(b.createdAt) : new Date(parseInt(b._id.substring(0, 8), 16) * 1000);
+                    return dateB - dateA;
+                });
+                
+                setOrders(sortedData);
                 setLoading(false);
             })
             .catch(err => console.error("Fetch error:", err));

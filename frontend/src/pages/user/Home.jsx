@@ -3,133 +3,160 @@ import API from "../../services/api";
 import VendorCard from "../../components/cards/VendorCard";
 import Layout from "../../components/common/Layout";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ArrowRight } from "lucide-react";
+import { Search, Filter, ArrowRight, XCircle } from "lucide-react";
 
 export default function Home() {
   const [vendors, setVendors] = useState([]);
-  const [searchInput, setSearchInput] = useState(""); 
-  const [searchTerm, setSearchTerm] = useState("");   
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    API.get("/vendors")
-      .then(res => setVendors(res.data))
-      .catch(() => setVendors([]));
+    API.get("/vendors/all-vendors")
+      .then((res) => setVendors(res.data))
+      .catch((err) => {
+        console.error("Error fetching vendors:", err);
+        setVendors([]);
+      });
   }, []);
 
-  // 🔍 FILTER LOGIC (SAFE + MULTI FIELD)
-  const filteredVendors = vendors.filter(v => {
+  const filteredVendors = vendors.filter((v) => {
     if (!searchTerm) return true;
-
     const term = searchTerm.toLowerCase();
-
     return (
-      v?.business?.companyName?.toLowerCase().includes(term) ||
+      v?.companyName?.toLowerCase().includes(term) ||
       v?.category?.toLowerCase().includes(term) ||
-      v?.business?.address?.toLowerCase().includes(term)
+      v?.city?.toLowerCase().includes(term) ||
+      v?.state?.toLowerCase().includes(term)
     );
   });
 
+  const categories = ["All", "Logistics", "Food & Beverage", "Technology", "Retail", "Manufacturing", "Others"];
+
   return (
     <Layout>
-
-      {/* ================= HERO ================= */}
-      <div className="relative bg-slate-900 rounded-3xl p-10 mb-10 overflow-hidden">
-        <div className="relative z-10 max-w-2xl">
-          <h1 className="text-4xl font-extrabold text-white mb-4 leading-tight">
-            Source Quality Products from{" "}
-            <span className="text-green-500">Verified Vendors</span>
+      {/* ================= HERO SECTION ================= */}
+      <section className="relative mb-12 overflow-hidden rounded-[2.5rem] bg-slate-900 px-6 py-12 md:px-12 md:py-20 shadow-2xl">
+        <div className="relative z-10 mx-auto max-w-3xl text-center lg:text-left">
+          <h1 className="mb-6 text-4xl font-black tracking-tight text-white md:text-6xl">
+            Global Supply <br className="hidden md:block" />
+            <span className="text-green-500">Simplified.</span>
           </h1>
-
-          <p className="text-slate-300 text-lg mb-8">
-            The largest B2B network for wholesale supply chains.
+          <p className="mb-10 text-lg text-slate-400 md:text-xl">
+            Connect with verified manufacturers and logistics partners in one unified marketplace.
           </p>
 
-          {/* 🔍 SEARCH BAR */}
-          <div className="flex bg-white p-2 rounded-2xl shadow-xl max-w-md">
-            <Search className="text-gray-400 m-2" />
-
-            <input
-              type="text"
-              placeholder="Search vendors, category, location..."
-              className="flex-1 outline-none text-gray-700"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") setSearchTerm(searchInput);
-              }}
-            />
-
+          {/* 🔍 SEARCH BAR - Modern Glass Effect */}
+          <div className="mx-auto flex w-full max-w-xl flex-col gap-3 rounded-3xl bg-white/10 p-2 backdrop-blur-md sm:flex-row lg:mx-0">
+            <div className="flex flex-1 items-center gap-3 px-4 py-2">
+              <Search className="text-green-400" size={22} />
+              <input
+                type="text"
+                placeholder="Search company, city or category..."
+                className="w-full bg-transparent text-white placeholder-slate-400 outline-none focus:ring-0"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && setSearchTerm(searchInput)}
+              />
+              {searchInput && (
+                <XCircle 
+                  className="cursor-pointer text-slate-500 hover:text-white" 
+                  size={18} 
+                  onClick={() => {setSearchInput(""); setSearchTerm("");}}
+                />
+              )}
+            </div>
             <button
               onClick={() => setSearchTerm(searchInput)}
-              className="bg-green-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-700 transition"
+              className="rounded-2xl bg-green-500 px-8 py-3 font-bold text-slate-900 transition-all hover:bg-green-400 active:scale-95"
             >
               Search
             </button>
           </div>
         </div>
 
-        <div className="absolute -top-20 -right-20 w-80 h-80 bg-green-500/10 rounded-full blur-3xl"></div>
-      </div>
+        {/* Abstract Shapes */}
+        <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-green-500/20 blur-[100px]" />
+        <div className="absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-blue-500/10 blur-[100px]" />
+      </section>
 
-      <div className="flex gap-8">
-
-        {/* ================= SIDEBAR ================= */}
-        <aside className="w-64 hidden lg:block">
-          <div className="bg-white p-6 rounded-2xl border shadow-sm sticky top-24">
-            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Filter size={18} /> Categories
+      <div className="flex flex-col gap-8 lg:flex-row">
+        {/* ================= CATEGORIES ================= */}
+        {/* On Mobile: Horizontal Scroll | On Desktop: Sidebar */}
+        <aside className="lg:w-72">
+          <div className="sticky top-24">
+            <h3 className="mb-4 hidden items-center gap-2 text-lg font-bold text-slate-800 lg:flex">
+              <Filter size={20} className="text-green-600" />
+              Industries
             </h3>
-
-            {["All", "Electronics", "Manufacturing", "Food", "Textiles"].map(cat => (
-              <div
-                key={cat}
-                onClick={() => setSearchTerm(cat === "All" ? "" : cat)}
-                className="flex justify-between items-center cursor-pointer text-gray-500 hover:text-green-600 mb-3 group"
-              >
-                {cat}
-                <ArrowRight size={14} className="opacity-0 group-hover:opacity-100" />
-              </div>
-            ))}
+            
+            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-4 lg:flex-col lg:overflow-visible lg:pb-0">
+              {categories.map((cat) => {
+                const isActive = searchTerm === cat || (cat === "All" && searchTerm === "");
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setSearchTerm(cat === "All" ? "" : cat)}
+                    className={`flex shrink-0 items-center justify-between whitespace-nowrap rounded-2xl px-5 py-3 transition-all lg:w-full ${
+                      isActive
+                        ? "bg-green-600 text-white shadow-lg shadow-green-200"
+                        : "bg-white text-slate-600 border border-slate-100 hover:border-green-300 hover:text-green-600 shadow-sm"
+                    }`}
+                  >
+                    <span className="text-sm font-medium md:text-base">{cat}</span>
+                    <ArrowRight size={16} className={`hidden lg:block transition-transform ${isActive ? "translate-x-1" : "opacity-0"}`} />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </aside>
 
-        {/* ================= MAIN ================= */}
-        <div className="flex-1">
-
-          <div className="flex justify-between items-end mb-6">
+        {/* ================= MAIN GRID ================= */}
+        <main className="flex-1">
+          <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">
-                Featured Suppliers
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Showing {filteredVendors.length} results
+              <h2 className="text-2xl font-black text-slate-800">Featured Suppliers</h2>
+              <p className="text-slate-500">
+                Discover {filteredVendors.length} verified businesses matching your needs.
               </p>
             </div>
+            {searchTerm && (
+               <button 
+                onClick={() => {setSearchTerm(""); setSearchInput("");}}
+                className="flex w-fit items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200"
+              >
+                Clear Filter: <span className="text-green-700">{searchTerm}</span>
+              </button>
+            )}
           </div>
 
-          {/* ================= GRID ================= */}
           {filteredVendors.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-    {filteredVendors.map(v => (
-      <VendorCard
-        key={v._id}
-        vendor={{
-          ...v, // 1. This keeps ALL your existing data (name, address, etc.)
-          image: v.image || null, // 2. This ensures the image is picked up from the DB
-        }}
-        onClick={() => navigate(`/vendor/${v._id}`)}
-      />
-    ))}
-  </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredVendors.map((v) => (
+                <div key={v._id} className="transition-transform duration-300 hover:-translate-y-2">
+                  <VendorCard
+                    vendor={{
+                      ...v,
+                      image: v.logo?.startsWith("http") ? v.logo : `http://localhost:5000/${v.logo}` || "https://via.placeholder.com/400x300",
+                      address: `${v.city}, ${v.state}`,
+                    }}
+                    onClick={() => navigate(`/vendor/${v._id}`)}
+                  />
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="text-center text-gray-500 mt-10">
-              No vendors found for "<span className="font-semibold">{searchTerm}</span>"
+            <div className="flex flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-slate-200 bg-slate-50/50 py-24 text-center">
+              <div className="mb-4 rounded-full bg-slate-100 p-4 text-slate-400">
+                <Search size={48} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-800">No vendors found</h3>
+              <p className="mt-2 text-slate-500">Try adjusting your search terms or category filters.</p>
             </div>
           )}
-
-        </div>
+        </main>
       </div>
     </Layout>
   );

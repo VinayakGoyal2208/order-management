@@ -1,17 +1,43 @@
 import { useState } from "react";
-import { Package, IndianRupee, Layers, Image as ImageIcon, ClipboardList, PlusCircle } from "lucide-react";
+import { 
+  Package, 
+  IndianRupee, 
+  Layers, 
+  Image as ImageIcon, 
+  ClipboardList, 
+  PlusCircle, 
+  Upload, 
+  X, 
+  Link as LinkIcon 
+} from "lucide-react";
 
 export default function ProductForm({ onSubmit }) {
   const [form, setForm] = useState({
     name: "",
     price: "",
     description: "",
-    category: "General", 
+    category: "General",
     image: "",
     stock: "",
   });
 
   const categories = ["Electronics", "Textiles", "Industrial", "Food & Beverage", "General"];
+
+  // Handle conversion of local file to Base64 string
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("File is too large! Please select an image under 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -102,7 +128,7 @@ export default function ProductForm({ onSubmit }) {
           <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1 uppercase">Product Description</label>
           <textarea
             required
-            rows="3"
+            rows="2"
             className="w-full bg-gray-50 border border-gray-100 rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
             placeholder="Describe technical specifications..."
             value={form.description}
@@ -110,23 +136,61 @@ export default function ProductForm({ onSubmit }) {
           />
         </div>
 
-        {/* Image URL */}
+        {/* --- Image Upload Section --- */}
         <div>
-          <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1 uppercase">Product Image Link</label>
-          <div className="relative">
-            <ImageIcon className="absolute left-3 top-3 text-gray-400" size={18} />
-            <input
-              className="w-full bg-gray-50 border border-gray-100 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-              placeholder="https://..."
-              value={form.image}
-              onChange={(e) => setForm({ ...form, image: e.target.value })}
-            />
+          <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1 uppercase">Product Image</label>
+          
+          <div className="space-y-3">
+            {/* Drag and Drop Zone */}
+            <div className="relative group border-2 border-dashed border-gray-200 rounded-2xl p-4 transition-all hover:border-emerald-400 bg-gray-50/50 flex flex-col items-center justify-center min-h-[120px]">
+              <input 
+                type="file" 
+                accept="image/*"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                onChange={handleImageUpload}
+              />
+              
+              {form.image ? (
+                <div className="relative">
+                  <img 
+                    src={form.image} 
+                    alt="Preview" 
+                    className="w-24 h-24 object-cover rounded-xl shadow-sm border-2 border-white" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setForm({...form, image: ""})}
+                    className="absolute -top-2 -right-2 bg-rose-500 text-white p-1 rounded-full shadow-md z-20 hover:bg-rose-600 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center pointer-events-none">
+                  <div className="bg-white p-2 rounded-lg shadow-sm inline-block mb-2">
+                    <Upload size={20} className="text-emerald-500" />
+                  </div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Drop file here or click to upload</p>
+                </div>
+              )}
+            </div>
+
+            {/* Manual Link Input */}
+            <div className="relative">
+              <LinkIcon className="absolute left-3 top-3 text-gray-400" size={16} />
+              <input
+                className="w-full bg-gray-50 border border-gray-100 rounded-xl py-2 pl-10 pr-4 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                placeholder="Or paste image URL link..."
+                value={form.image.startsWith("data:") ? "" : form.image}
+                onChange={(e) => setForm({ ...form, image: e.target.value })}
+              />
+            </div>
           </div>
         </div>
 
         <button
           type="submit"
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex justify-center items-center gap-2 mt-4"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex justify-center items-center gap-2 mt-2"
         >
           <PlusCircle size={20} />
           Publish Product

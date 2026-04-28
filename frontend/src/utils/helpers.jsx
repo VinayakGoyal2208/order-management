@@ -7,4 +7,6 @@ export const getUserFromToken = () => {
   } catch {
     return null;
   }
+
+  
 };

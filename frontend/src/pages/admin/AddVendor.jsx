@@ -1,18 +1,18 @@
 import Layout from "../../components/common/Layout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Store, User, Mail, Phone, MapPin, Lock,
+  Upload, X, Building, Home, Link as LinkIcon,
+  AlertCircle, Globe, CheckCircle2, Tag
+} from "lucide-react";
 import API from "../../services/api";
-import { Store, User, Mail, Phone, MapPin, Lock, Tag, AlertCircle, CheckCircle2, Image as ImageIcon } from "lucide-react";
 
 const InputField = ({ label, name, icon: Icon, type = "text", placeholder, isTextArea = false, value, onChange, error }) => (
-  <div className="flex flex-col">
-    <label className="text-xs font-bold text-gray-500 mb-1.5 uppercase ml-1 tracking-wider">
-      {label}
-    </label>
+  <div className="flex flex-col w-full">
+    <label className="text-[10px] font-black text-slate-400 mb-1.5 uppercase ml-1 tracking-widest">{label}</label>
     <div className="relative">
-      <div className="absolute left-3 top-3 text-gray-400">
-        <Icon size={18} />
-      </div>
+      <div className="absolute left-3 top-3 text-slate-400"><Icon size={18} /></div>
       {isTextArea ? (
         <textarea
           name={name}
@@ -20,7 +20,7 @@ const InputField = ({ label, name, icon: Icon, type = "text", placeholder, isTex
           onChange={onChange}
           placeholder={placeholder}
           rows="2"
-          className={`w-full bg-gray-50 border ${error ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'} rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
+          className={`w-full bg-slate-50 border ${error ? 'border-red-300 ring-1 ring-red-50' : 'border-slate-100'} rounded-2xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-emerald-500 outline-none transition-all resize-none shadow-sm`}
         />
       ) : (
         <input
@@ -29,74 +29,125 @@ const InputField = ({ label, name, icon: Icon, type = "text", placeholder, isTex
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`w-full bg-gray-50 border ${error ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'} rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
+          className={`w-full bg-slate-50 border ${error ? 'border-red-300 ring-1 ring-red-50' : 'border-slate-100'} rounded-2xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-emerald-500 outline-none transition-all shadow-sm`}
         />
       )}
     </div>
-    {error && (
-      <span className="flex items-center gap-1 text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">
-        <AlertCircle size={10} /> {error}
-      </span>
-    )}
+    {error && <span className="flex items-center gap-1 text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase"><AlertCircle size={10} /> {error}</span>}
   </div>
 );
 
 export default function AddVendor() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [form, setForm] = useState({
-    companyName: "",
-    ownerName: "",
-    email: "",
-    phone: "",
-    category: "",
-    address: "",
-    password: "",
-    image: "" // ✅ New state field
-  });
-
-  const categories = ["Logistics", "Food & Beverage", "Technology", "Retail", "Manufacturing"];
-
-  const validateForm = () => {
-    let newErrors = {};
-    if (!form.companyName.trim()) newErrors.companyName = "Company name is required";
-    if (!form.ownerName.trim()) newErrors.ownerName = "Owner name is required";
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) newErrors.email = "Invalid email address";
-
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(form.phone)) newErrors.phone = "Invalid 10-digit number";
-
-    if (!form.category) newErrors.category = "Category is required";
-    if (form.address.length < 10) newErrors.address = "Address too short";
-    if (form.password.length < 6) newErrors.password = "Min 6 characters";
-    
-    // ✅ Optional: Basic URL validation if they provided one
-    if (form.image && !form.image.startsWith("http")) {
-      newErrors.image = "Must be a valid URL (starting with http)";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const initialState = {
+    companyName: "", ownerName: "", email: "", phone: "", category: "",
+    image: "", imageFile: null, streetAddress: "", city: "", state: "", pincode: "", password: ""
   };
 
-  const handleChange = (e) => {
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [preview, setPreview] = useState(null);
+  const [imageMode, setImageMode] = useState("link");
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [form, setForm] = useState(initialState);
+
+  const categories = ["Logistics", "Food & Beverage", "Technology", "Retail", "Manufacturing"];
+   const indianStates = [
+      "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  ];
+
+  const handleValidatedChange = (e) => {
     const { name, value } = e.target;
+    if (name === "phone" || name === "pincode") {
+      if (value !== "" && !/^\d+$/.test(value)) return;
+      if (name === "phone" && value.length > 10) return;
+      if (name === "pincode" && value.length > 6) return;
+    }
     setForm({ ...form, [name]: value });
     if (errors[name]) setErrors({ ...errors, [name]: null });
   };
 
-  const submit = async (e) => {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setForm({ ...form, imageFile: file, image: "" });
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const validateForm = () => {
+    let err = {};
+    if (!form.companyName.trim()) err.companyName = "Required";
+    if (!form.ownerName.trim()) err.ownerName = "Required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) err.email = "Invalid email";
+    if (form.phone.length !== 10) err.phone = "10 digits required";
+    if (!form.category) err.category = "Select category";
+    if (!form.streetAddress.trim()) err.streetAddress = "Required";
+    if (!form.city.trim()) err.city = "Required";
+    if (!form.state) err.state = "Required";
+    if (form.pincode.length !== 6) err.pincode = "Invalid";
+    if (form.password.length < 6) err.password = "Min 6 chars";
+    setErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
+const submit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
+
     try {
-      await API.post("/vendors", form);
+      const formData = new FormData();
+      Object.keys(form).forEach(key => {
+        if (key !== 'imageFile' && key !== 'image') {
+          formData.append(key, form[key]);
+        }
+      });
+
+      formData.append("status", "active");
+
+      if (imageMode === "upload" && form.imageFile) {
+        formData.append("image", form.imageFile);
+      } else {
+        formData.append("image", form.image);
+      }
+
+      await API.post("/vendors/create-vendor", formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      alert("Vendor Onboarded Successfully!");
       navigate("/admin-vendors");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to add vendor");
+      console.error("Submission Error:", err);
+      alert(err.response?.data?.msg || "Onboarding failed. Check server connection.");
     } finally {
       setLoading(false);
     }
@@ -104,85 +155,112 @@ export default function AddVendor() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto py-4">
-        <div className="mb-8">
-          <h1 className="text-2xl font-black text-gray-800">Onboard New Partner</h1>
-          <p className="text-gray-500">Register a new B2B vendor to the marketplace.</p>
+      <div className="max-w-5xl mx-auto py-8 px-4">
+        <div className="mb-10">
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight italic">Direct Onboarding</h1>
+          <p className="text-slate-500 font-medium">Add a verified partner directly without approval queue.</p>
         </div>
 
-        <form onSubmit={submit} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            
-            <InputField label="Company Name" name="companyName" icon={Store} placeholder="e.g. Goyal Industries" value={form.companyName} onChange={handleChange} error={errors.companyName} />
-            <InputField label="Owner Name" name="ownerName" icon={User} placeholder="Full name" value={form.ownerName} onChange={handleChange} error={errors.ownerName} />
-            <InputField label="Email" name="email" type="email" icon={Mail} placeholder="vendor@example.com" value={form.email} onChange={handleChange} error={errors.email} />
-            <InputField label="Phone" name="phone" icon={Phone} placeholder="10-digit number" value={form.phone} onChange={handleChange} error={errors.phone} />
+        <form onSubmit={submit} className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/60 space-y-8">
 
-            <div className="col-span-2">
-              <label className="text-xs font-bold text-gray-500 mb-1.5 uppercase ml-1 tracking-wider">Business Category</label>
-              <div className="flex flex-col md:flex-row gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <InputField label="Company Name" name="companyName" icon={Store} placeholder="Goyal Industries" value={form.companyName} onChange={handleValidatedChange} error={errors.companyName} />
+            <InputField label="Owner Name" name="ownerName" icon={User} placeholder="Full Name" value={form.ownerName} onChange={handleValidatedChange} error={errors.ownerName} />
+            <InputField label="Email Address" name="email" type="email" icon={Mail} placeholder="vendor@biz.com" value={form.email} onChange={handleValidatedChange} error={errors.email} />
+            <InputField label="Phone" name="phone" icon={Phone} placeholder="10-digit mobile" value={form.phone} onChange={handleValidatedChange} error={errors.phone} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Business Category</label>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
-                  <Tag className="absolute left-3 top-3 text-gray-400" size={18} />
-                  <select 
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none cursor-pointer"
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    value={categories.includes(form.category) ? form.category : ""}
+                  <Tag size={18} className="absolute left-3 top-3 text-slate-400" />
+                  <select
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setIsCustomCategory(val === "Other");
+                      setForm({ ...form, category: val === "Other" ? "" : val });
+                    }}
+                    value={categories.includes(form.category) ? form.category : (isCustomCategory ? "Other" : "")}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-10 pr-4 py-3 text-sm font-semibold outline-none focus:border-emerald-500 appearance-none"
                   >
-                    <option value="">Select Predefined</option>
-                    {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    <option value="Other">Other (Custom Type)</option>
+                    <option value="">Select Category</option>
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    <option value="Other">Other</option>
                   </select>
                 </div>
-                <input 
-                  name="category"
-                  placeholder="Or type custom category..."
-                  value={form.category}
-                  className={`flex-1 bg-gray-50 border ${errors.category ? 'border-red-300' : 'border-gray-100'} p-2.5 rounded-xl outline-none transition-all`}
-                  onChange={handleChange}
-                />
+                {isCustomCategory && (
+                  <input name="category" placeholder="Type Category" value={form.category} onChange={handleValidatedChange} className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-semibold outline-none focus:border-emerald-500" />
+                )}
               </div>
-              {errors.category && <span className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">{errors.category}</span>}
+              {errors.category && <span className="text-red-500 text-[10px] font-bold ml-1 uppercase">{errors.category}</span>}
             </div>
 
-            {/* ✅ Vendor Image Link Field */}
-            <div className="col-span-2">
-              <InputField 
-                label="Vendor Image/Logo URL" 
-                name="image" 
-                icon={ImageIcon} 
-                placeholder="https://example.com/logo.png" 
-                value={form.image} 
-                onChange={handleChange} 
-                error={errors.image} 
-              />
-              {form.image && !errors.image && (
-                <div className="mt-4 flex items-center gap-4 p-3 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                  <img 
-                    src={form.image} 
-                    alt="Preview" 
-                    className="w-12 h-12 rounded-lg object-cover bg-white border border-gray-100"
-                    onError={(e) => e.target.style.display = 'none'} // Hide if link is broken
-                  />
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Logo Preview</span>
+            <div className="p-5 bg-slate-50 rounded-[2rem] border border-slate-100">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Partner Logo</span>
+                <div className="flex bg-white p-1 rounded-xl shadow-inner border border-slate-100">
+                  {["upload", "link"].map(mode => (
+                    <button key={mode} type="button" onClick={() => setImageMode(mode)} className={`px-4 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all ${imageMode === mode ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}>{mode}</button>
+                  ))}
                 </div>
-              )}
-            </div>
-
-            <div className="col-span-2">
-              <InputField label="Address" name="address" icon={MapPin} isTextArea value={form.address} onChange={handleChange} error={errors.address} />
-            </div>
-
-            <div className="col-span-2">
-              <InputField label="Password" name="password" type="password" icon={Lock} value={form.password} onChange={handleChange} error={errors.password} />
+              </div>
+              <div className="flex items-center gap-4">
+                {imageMode === "upload" ? (
+                  <label className="flex-1 h-20 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-white transition-all">
+                    <Upload size={18} className="text-slate-300 mb-1" />
+                    <span className="text-[9px] font-black text-slate-400 uppercase">Upload</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                  </label>
+                ) : (
+                  <div className="flex-1 relative">
+                    <LinkIcon size={16} className="absolute left-3 top-3.5 text-slate-400" />
+                    <input type="text" placeholder="URL..." value={form.image} onChange={(e) => { setForm({ ...form, image: e.target.value, imageFile: null }); setPreview(e.target.value); }} className="w-full bg-white border border-slate-100 rounded-2xl py-3 pl-10 pr-4 text-xs font-bold outline-none focus:border-emerald-500" />
+                  </div>
+                )}
+                {preview && (
+                  <div className="relative w-20 h-20 rounded-[1.5rem] overflow-hidden border-4 border-white shadow-lg shrink-0">
+                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => { setPreview(null); setForm({ ...form, image: "", imageFile: null }) }} className="absolute top-1 right-1 p-1 bg-rose-500 text-white rounded-full"><X size={10} /></button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <button 
-            type="submit" 
+          <div className="space-y-6">
+            <InputField label="Street Address" name="streetAddress" icon={MapPin} isTextArea placeholder="Shop/Office number and street..." value={form.streetAddress} onChange={handleValidatedChange} error={errors.streetAddress} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <InputField label="City" name="city" icon={Building} placeholder="e.g. Dehradun" value={form.city} onChange={handleValidatedChange} error={errors.city} />
+              <div className="flex flex-col">
+                <label className="text-[10px] font-black text-slate-400 mb-1.5 uppercase ml-1 tracking-widest">State</label>
+                <div className="relative">
+                  <Globe size={18} className="absolute left-3 top-3 text-slate-400" />
+                  <select name="state" value={form.state} onChange={handleValidatedChange} className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-emerald-500 outline-none appearance-none transition-all shadow-sm">
+                    <option value="">Select State</option>
+                    {indianStates.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                {errors.state && <span className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">{errors.state}</span>}
+              </div>
+              <InputField label="Pincode" name="pincode" icon={Home} placeholder="6-digit PIN" value={form.pincode} onChange={handleValidatedChange} error={errors.pincode} />
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-slate-50">
+            <InputField label="Secure Password" name="password" type="password" icon={Lock} placeholder="Minimum 6 characters" value={form.password} onChange={handleValidatedChange} error={errors.password} />
+          </div>
+
+          <button
+            type="submit"
             disabled={loading}
-            className={`w-full mt-10 py-4 rounded-2xl font-black text-white flex justify-center items-center gap-3 transition-all ${loading ? "bg-gray-300" : "bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/20"}`}
+            className="w-full py-5 bg-slate-900 text-white font-black rounded-[2rem] shadow-2xl shadow-slate-200 hover:bg-black hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-50"
           >
-            {loading ? "Processing..." : <><CheckCircle2 size={20} /> COMPLETE REGISTRATION</>}
+            <div className="flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs">
+              {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckCircle2 size={20} />}
+              {loading ? "Registering..." : "Complete Direct Registration"}
+            </div>
           </button>
         </form>
       </div>

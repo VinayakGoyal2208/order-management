@@ -15,7 +15,7 @@ export default function Users() {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const res = await API.get("/users");
+            const res = await API.get("/users?role=user");
             setUsers(res.data);
         } catch (err) {
             console.error("Error fetching users:", err);
@@ -35,10 +35,14 @@ export default function Users() {
         }
     };
 
-    const filteredUsers = users.filter(u => 
+const filteredUsers = users.filter(u => 
+    u.role !== 'admin' && 
+    u.role !== 'vendor' &&
+    (
         u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
         u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    )
+);
 
     return (
         <Layout>

@@ -83,14 +83,14 @@ export default function RegisterForm({ onSubmit }) {
 
       {/* Email */}
       <div>
-        <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Business Email</label>
+        <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Personal Email</label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-emerald-600 transition-colors">
             <Mail size={18} />
           </div>
           <input
             type="email"
-            placeholder="john@company.com"
+            placeholder="john@gmail.com"
             className={inputClass("email")}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
@@ -163,7 +163,7 @@ export default function RegisterForm({ onSubmit }) {
         className="w-full flex justify-center items-center gap-2 py-4 md:py-3.5 mt-2 border border-transparent text-sm md:text-base font-black rounded-2xl text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-xl shadow-emerald-500/10 transition-all duration-200"
       >
         <UserPlus size={20} />
-        <span>Create Business Account</span>
+        <span>Create an Account</span>
       </button>
     </form>
   );
