@@ -2,15 +2,45 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
-    vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
-    name: String,
-    description: String,
-    price: Number,
-    image: String,
-    category: String,
-    stock: Number,
+    vendor: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "Vendor", // This links to your Vendor model
+      required: true 
+    },
+    name: { 
+      type: String, 
+      required: true, 
+      trim: true 
+    },
+    description: { 
+      type: String, 
+      required: true 
+    },
+    price: { 
+      type: Number, 
+      required: true,
+      min: 0 
+    },
+    image: { 
+      type: String,
+      default: "" 
+    },
+    category: { 
+      type: String, 
+      default: "General",
+      index: true // Added index for faster filtering by category
+    },
+    stock: { 
+      type: Number, 
+      default: 0,
+      min: 0
+    },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Product", productSchema);
+// Search optimization
+productSchema.index({ name: 'text', category: 'text' });
+
+const Product = mongoose.model("Product", productSchema);
+export default Product;
