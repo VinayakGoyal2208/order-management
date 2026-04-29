@@ -12,6 +12,7 @@ import Products from "./pages/vendor/Products";
 import AddProduct from "./pages/vendor/AddProduct";
 
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminOrders from "./pages/admin/UserOrders";
 import Users from "./pages/admin/Users";
 import Vendors from "./pages/admin/Vendors";
 import AddVendor from "./pages/admin/AddVendor";
@@ -110,6 +111,14 @@ function App() {
         element={
           <ProtectedRoute role="admin">
             <Users />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin-orders"
+        element={
+          <ProtectedRoute role="admin">
+            <AdminOrders />
           </ProtectedRoute>
         }
       />

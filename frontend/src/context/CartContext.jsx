@@ -23,21 +23,41 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("b2b_cart", JSON.stringify(newCart));
   };
 
-  // UPDATED: Now supports multiple additions of the same item
-  const addToCart = (product) => {
+const addToCart = (product) => {
     setCart((prevCart) => {
+      // 1. Check if the cart is not empty and the new product is from a different vendor
+      if (prevCart.length > 0) {
+        const existingVendorId = prevCart[0].vendor?._id || prevCart[0].vendor;
+        const newVendorId = product.vendor?._id || product.vendor;
+
+        if (existingVendorId !== newVendorId) {
+          const confirmClear = window.confirm(
+            "Your cart contains items from another vendor. Clear your cart to add items from this vendor instead?"
+          );
+          
+          if (confirmClear) {
+            // User agreed: replace cart with only the new item
+            const newCart = [{ ...product, quantity: 1 }];
+            localStorage.setItem("b2b_cart", JSON.stringify(newCart));
+            return newCart;
+          } else {
+            // User canceled: return current cart unchanged
+            return prevCart;
+          }
+        }
+      }
+
+      // 2. Normal logic: Add or Increment quantity
       const exists = prevCart.find((item) => item._id === product._id);
       let newCart;
 
       if (exists) {
-        // If it exists, map through and increase quantity
         newCart = prevCart.map((item) =>
           item._id === product._id 
             ? { ...item, quantity: (item.quantity || 1) + 1 } 
             : item
         );
       } else {
-        // If it's new, add it with initial quantity of 1
         newCart = [...prevCart, { ...product, quantity: 1 }];
       }
 

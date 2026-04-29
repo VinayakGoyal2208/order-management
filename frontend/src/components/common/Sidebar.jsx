@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { 
-  LayoutDashboard, Package, PlusCircle, Users, Store, LogOut, ShoppingBag, X 
+import {
+  LayoutDashboard, Package, PlusCircle, Users, Store, LogOut, ShoppingBag, X
 } from "lucide-react";
 
 export default function Sidebar({ role, isOpen, setIsOpen }) {
@@ -15,18 +15,17 @@ export default function Sidebar({ role, isOpen, setIsOpen }) {
     }
   };
 
-  const linkStyle = ({ isActive }) => 
-    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-      isActive 
-        ? "bg-green-600 text-white shadow-lg shadow-green-500/20" 
-        : "text-gray-400 hover:bg-gray-800 hover:text-white"
+  const linkStyle = ({ isActive }) =>
+    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+      ? "bg-green-600 text-white shadow-lg shadow-green-500/20"
+      : "text-gray-400 hover:bg-gray-800 hover:text-white"
     }`;
 
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
@@ -39,7 +38,7 @@ export default function Sidebar({ role, isOpen, setIsOpen }) {
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
         {/* Mobile Close Button */}
-        <button 
+        <button
           onClick={() => setIsOpen(false)}
           className="lg:hidden absolute right-4 top-6 text-gray-400 hover:text-white"
         >
@@ -61,30 +60,31 @@ export default function Sidebar({ role, isOpen, setIsOpen }) {
         <nav className="flex flex-col gap-2 flex-1" onClick={() => setIsOpen(false)}>
           {role === "vendor" && (
             <>
-              <NavLink to="/vendor-dashboard" className={linkStyle}><LayoutDashboard size={18}/> Dashboard</NavLink>
-              <NavLink to="/vendor-orders" className={linkStyle}><ShoppingBag size={18}/> Orders</NavLink>
-              <NavLink to="/vendor-products" className={linkStyle}><Package size={18}/> Products</NavLink>
-              <NavLink to="/add-product" className={linkStyle}><PlusCircle size={18}/> Add Product</NavLink>
+              <NavLink to="/vendor-dashboard" className={linkStyle}><LayoutDashboard size={18} /> Dashboard</NavLink>
+              <NavLink to="/vendor-orders" className={linkStyle}><ShoppingBag size={18} /> Orders</NavLink>
+              <NavLink to="/vendor-products" className={linkStyle}><Package size={18} /> Products</NavLink>
+              <NavLink to="/add-product" className={linkStyle}><PlusCircle size={18} /> Add Product</NavLink>
             </>
           )}
 
           {role === "admin" && (
             <>
-              <NavLink to="/admin-dashboard" className={linkStyle}><LayoutDashboard size={18}/> Overview</NavLink>
-              <NavLink to="/admin-users" className={linkStyle}><Users size={18}/> Users</NavLink>
-              <NavLink to="/admin-vendors" className={linkStyle}><Store size={18}/> Vendors</NavLink>
-              <NavLink to="/add-vendor" className={linkStyle}><PlusCircle size={18}/> Add Vendor</NavLink>
+              <NavLink to="/admin-dashboard" className={linkStyle}><LayoutDashboard size={18} /> Overview</NavLink>
+              <NavLink to="/admin-users" className={linkStyle}><Users size={18} /> Users</NavLink>
+              <NavLink to="/admin-orders" className={linkStyle}><ShoppingBag size={18} /> User Orders</NavLink>
+              <NavLink to="/admin-vendors" className={linkStyle}><Store size={18} /> Vendors</NavLink>
+              <NavLink to="/add-vendor" className={linkStyle}><PlusCircle size={18} /> Add Vendor</NavLink>
             </>
           )}
         </nav>
 
         {/* Logout Section */}
         <div className="mt-auto pt-6 border-t border-gray-800">
-          <button 
+          <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-gray-400 hover:bg-red-500/10 hover:text-red-500 transition-all duration-200 font-medium"
           >
-            <LogOut size={18}/>
+            <LogOut size={18} />
             Logout
           </button>
         </div>

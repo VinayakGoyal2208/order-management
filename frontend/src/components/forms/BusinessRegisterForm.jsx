@@ -53,7 +53,7 @@ export default function BusinessRegisterForm({ onCancel }) {
     return () => { if (preview && imageMode === "upload") URL.revokeObjectURL(preview); };
   }, [preview, imageMode]);
 
-  const categories = ["All", "Logistics", "Food & Beverage", "Technology", "Retail", "Manufacturing","Others"];
+  const categories = ["All", "Logistics", "Food & Beverage", "Technology", "Retail", "Manufacturing"];
   const indianStates = [
     "Andhra Pradesh", "Assam", "Bihar", "Goa", "Gujarat", "Haryana", 
     "Karnataka", "Kerala", "Maharashtra", "Punjab", "Rajasthan", "Tamil Nadu", 

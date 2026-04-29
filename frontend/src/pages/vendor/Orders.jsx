@@ -25,7 +25,7 @@ export default function VendorOrders() {
                     const dateB = b.createdAt ? new Date(b.createdAt) : new Date(parseInt(b._id.substring(0, 8), 16) * 1000);
                     return dateB - dateA;
                 });
-                
+
                 setOrders(sortedData);
                 setLoading(false);
             })
@@ -88,7 +88,7 @@ export default function VendorOrders() {
                     ) : (
                         filteredOrders.map(o => (
                             <div key={o._id} className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden hover:border-emerald-200 transition-all duration-300">
-                                
+
                                 {/* Responsive Top Bar */}
                                 <div className="bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100">
                                     <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
@@ -105,7 +105,8 @@ export default function VendorOrders() {
 
                                 {/* Order Content Grid */}
                                 <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    
+
+                                    {/* Customer Info */}
                                     {/* Customer Info */}
                                     <div className="space-y-4">
                                         <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
@@ -113,8 +114,18 @@ export default function VendorOrders() {
                                         </h3>
                                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                             <p className="font-black text-slate-800 text-sm">{o.customerName}</p>
-                                            <p className="text-[11px] text-slate-500 font-medium mb-3 truncate">{o.customerEmail}</p>
-                                            <div className="flex items-start gap-2 pt-3 border-t border-slate-200/50">
+                                            <p className="text-[11px] text-slate-500 font-medium truncate">{o.customerEmail}</p>
+
+                                            {o.customerPhone && (
+                                                <a
+                                                    href={`tel:${o.customerPhone}`}
+                                                    className="text-[11px] text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1"
+                                                >
+                                                    {o.customerPhone}
+                                                </a>
+                                            )}
+
+                                            <div className="flex items-start gap-2 pt-3 mt-3 border-t border-slate-200/50">
                                                 <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
                                                 <p className="text-xs leading-relaxed text-slate-600 font-medium">{o.shippingAddress}</p>
                                             </div>
@@ -130,7 +141,7 @@ export default function VendorOrders() {
                                             {o.items?.map((item, idx) => (
                                                 <div key={idx} className="flex justify-between items-center text-xs p-2 bg-white border border-slate-50 rounded-lg shadow-sm">
                                                     <p className="font-bold text-slate-700">
-                                                        <span className="inline-block w-6 text-emerald-600">x{item.quantity}</span> 
+                                                        <span className="inline-block w-6 text-emerald-600">x{item.quantity}</span>
                                                         <span className="truncate">{item.name}</span>
                                                     </p>
                                                     <p className="text-slate-400 font-black">₹{item.price?.toLocaleString()}</p>
@@ -144,21 +155,19 @@ export default function VendorOrders() {
                                         <h3 className="lg:hidden text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Update Status</h3>
                                         <button
                                             onClick={() => updateStatus(o._id, "processing")}
-                                            className={`flex items-center justify-center gap-3 py-3.5 rounded-xl font-black text-[10px] tracking-widest transition-all active:scale-95 ${
-                                                o.status === 'processing' 
-                                                ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' 
-                                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-amber-500 hover:text-white'
-                                            }`}
+                                            className={`flex items-center justify-center gap-3 py-3.5 rounded-xl font-black text-[10px] tracking-widest transition-all active:scale-95 ${o.status === 'processing'
+                                                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-200'
+                                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-amber-500 hover:text-white'
+                                                }`}
                                         >
                                             <Clock size={16} /> {o.status === 'processing' ? 'IN PROCESSING' : 'START PROCESSING'}
                                         </button>
                                         <button
                                             onClick={() => updateStatus(o._id, "delivered")}
-                                            className={`flex items-center justify-center gap-3 py-3.5 rounded-xl font-black text-[10px] tracking-widest transition-all active:scale-95 ${
-                                                o.status === 'delivered' 
-                                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' 
-                                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-emerald-600 hover:text-white'
-                                            }`}
+                                            className={`flex items-center justify-center gap-3 py-3.5 rounded-xl font-black text-[10px] tracking-widest transition-all active:scale-95 ${o.status === 'delivered'
+                                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-emerald-600 hover:text-white'
+                                                }`}
                                         >
                                             <CheckCircle size={16} /> {o.status === 'delivered' ? 'SHIPMENT DELIVERED' : 'MARK DELIVERED'}
                                         </button>
