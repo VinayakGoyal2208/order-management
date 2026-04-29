@@ -13,12 +13,14 @@ import { authorize } from "../middleware/role.Middleware.js";
 const router = express.Router();
 const upload = multer(); 
 
-// 1. Authentication: Everyone must be logged in to see anything
-router.use(protect);
+
 
 // 2. Public/Shared Read Routes: Admins, Vendors, AND Users can see these
 router.get("/all-vendors", getVendors);
 router.get("/:id", getVendorById);
+
+// 1. Authentication: Everyone must be logged in to see anything
+router.use(protect);
 
 // 3. Admin-Only Routes: Only Admins can create, delete, or update
 // We apply the authorize middleware specifically to these routes
