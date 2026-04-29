@@ -5,12 +5,11 @@ const orderSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
     
-    // ✅ TOP LEVEL FIELDS (This is what was missing)
     customerName: String,
     customerEmail: String,
     customerPhone: String,
     shippingAddress: String,
-    pincode: String, // Added as requested
+    pincode: String, 
     
     items: [
       {

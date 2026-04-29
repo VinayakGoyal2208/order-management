@@ -4,7 +4,7 @@ const productSchema = new mongoose.Schema(
   {
     vendor: { 
       type: mongoose.Schema.Types.ObjectId, 
-      ref: "Vendor", // This links to your Vendor model
+      ref: "Vendor", 
       required: true 
     },
     name: { 
