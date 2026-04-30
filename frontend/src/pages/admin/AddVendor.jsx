@@ -1,10 +1,10 @@
 import Layout from "../../components/common/Layout";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Store, User, Mail, Phone, MapPin, Lock,
   Upload, X, Building, Home, Link as LinkIcon,
-  AlertCircle, Globe, CheckCircle2, Tag
+  AlertCircle, Globe, CheckCircle2, Tag, Plus
 } from "lucide-react";
 import API from "../../services/api";
 
@@ -40,7 +40,8 @@ const InputField = ({ label, name, icon: Icon, type = "text", placeholder, isTex
 export default function AddVendor() {
   const navigate = useNavigate();
   const initialState = {
-    companyName: "", ownerName: "", email: "", phone: "", category: "",
+    companyName: "", ownerName: "", email: "", phone: "", 
+    categories: [], // Changed to array
     image: "", imageFile: null, streetAddress: "", city: "", state: "", pincode: "", password: ""
   };
 
@@ -48,39 +49,15 @@ export default function AddVendor() {
   const [errors, setErrors] = useState({});
   const [preview, setPreview] = useState(null);
   const [imageMode, setImageMode] = useState("link");
-  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState("");
   const [form, setForm] = useState(initialState);
 
-  const categories = ["Logistics", "Food & Beverage", "Technology", "Retail", "Manufacturing"];
-   const indianStates = [
-      "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
+  const categoryOptions = ["Logistics", "Food & Beverage", "Technology", "Retail", "Manufacturing", "Healthcare", "Services"];
+  const indianStates = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", 
+    "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", 
+    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
+    "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
   ];
 
   const handleValidatedChange = (e) => {
@@ -92,6 +69,26 @@ export default function AddVendor() {
     }
     setForm({ ...form, [name]: value });
     if (errors[name]) setErrors({ ...errors, [name]: null });
+  };
+
+  // Toggle Category Selection
+  const toggleCategory = (cat) => {
+    let updatedCategories = [...form.categories];
+    if (updatedCategories.includes(cat)) {
+      updatedCategories = updatedCategories.filter(item => item !== cat);
+    } else {
+      updatedCategories.push(cat);
+    }
+    setForm({ ...form, categories: updatedCategories });
+    if (errors.categories) setErrors({ ...errors, categories: null });
+  };
+
+  // Add Custom Category
+  const addCustomCategory = () => {
+    if (customCategory.trim() && !form.categories.includes(customCategory.trim())) {
+      setForm({ ...form, categories: [...form.categories, customCategory.trim()] });
+      setCustomCategory("");
+    }
   };
 
   const handleFileChange = (e) => {
@@ -108,7 +105,7 @@ export default function AddVendor() {
     if (!form.ownerName.trim()) err.ownerName = "Required";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) err.email = "Invalid email";
     if (form.phone.length !== 10) err.phone = "10 digits required";
-    if (!form.category) err.category = "Select category";
+    if (form.categories.length === 0) err.categories = "Select at least one"; // Validate array
     if (!form.streetAddress.trim()) err.streetAddress = "Required";
     if (!form.city.trim()) err.city = "Required";
     if (!form.state) err.state = "Required";
@@ -118,7 +115,7 @@ export default function AddVendor() {
     return Object.keys(err).length === 0;
   };
 
-const submit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
@@ -126,16 +123,17 @@ const submit = async (e) => {
     try {
       const formData = new FormData();
       Object.keys(form).forEach(key => {
-        if (key !== 'imageFile' && key !== 'image') {
+        if (!['imageFile', 'image', 'categories'].includes(key)) {
           formData.append(key, form[key]);
         }
       });
 
+      formData.append("category", JSON.stringify(form.categories)); 
       formData.append("status", "active");
 
       if (imageMode === "upload" && form.imageFile) {
         formData.append("image", form.imageFile);
-      } else {
+      } else if (form.image) {
         formData.append("image", form.image);
       }
 
@@ -147,7 +145,7 @@ const submit = async (e) => {
       navigate("/admin-vendors");
     } catch (err) {
       console.error("Submission Error:", err);
-      alert(err.response?.data?.msg || "Onboarding failed. Check server connection.");
+      alert(err.response?.data?.msg || "Onboarding failed.");
     } finally {
       setLoading(false);
     }
@@ -158,11 +156,11 @@ const submit = async (e) => {
       <div className="max-w-5xl mx-auto py-8 px-4">
         <div className="mb-10">
           <h1 className="text-3xl font-black text-slate-900 tracking-tight italic">Direct Onboarding</h1>
-          <p className="text-slate-500 font-medium">Add a verified partner directly without approval queue.</p>
+          <p className="text-slate-500 font-medium">Add a verified partner directly with multiple service categories.</p>
         </div>
 
         <form onSubmit={submit} className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/60 space-y-8">
-
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <InputField label="Company Name" name="companyName" icon={Store} placeholder="Goyal Industries" value={form.companyName} onChange={handleValidatedChange} error={errors.companyName} />
             <InputField label="Owner Name" name="ownerName" icon={User} placeholder="Full Name" value={form.ownerName} onChange={handleValidatedChange} error={errors.ownerName} />
@@ -171,32 +169,60 @@ const submit = async (e) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Business Category</label>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Tag size={18} className="absolute left-3 top-3 text-slate-400" />
-                  <select
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setIsCustomCategory(val === "Other");
-                      setForm({ ...form, category: val === "Other" ? "" : val });
-                    }}
-                    value={categories.includes(form.category) ? form.category : (isCustomCategory ? "Other" : "")}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-10 pr-4 py-3 text-sm font-semibold outline-none focus:border-emerald-500 appearance-none"
+            {/* Multiple Category Select */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Business Categories (Multiple)</label>
+              
+              <div className="flex flex-wrap gap-2 mb-3">
+                {categoryOptions.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => toggleCategory(cat)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                      form.categories.includes(cat) 
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-100' 
+                      : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'
+                    }`}
                   >
-                    <option value="">Select Category</option>
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                {isCustomCategory && (
-                  <input name="category" placeholder="Type Category" value={form.category} onChange={handleValidatedChange} className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-semibold outline-none focus:border-emerald-500" />
-                )}
+                    {cat}
+                  </button>
+                ))}
               </div>
-              {errors.category && <span className="text-red-500 text-[10px] font-bold ml-1 uppercase">{errors.category}</span>}
+
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Tag size={16} className="absolute left-3 top-3.5 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Add Custom..." 
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3 pl-9 pr-4 text-xs font-bold outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <button 
+                  type="button" 
+                  onClick={addCustomCategory}
+                  className="p-3 bg-slate-900 text-white rounded-2xl hover:bg-black transition-all"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+
+              {/* Selected Categories Display */}
+              <div className="flex flex-wrap gap-2 pt-2">
+                {form.categories.map(cat => (
+                  <span key={cat} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-[10px] font-black uppercase">
+                    {cat}
+                    <X size={12} className="cursor-pointer hover:text-rose-500" onClick={() => toggleCategory(cat)} />
+                  </span>
+                ))}
+              </div>
+              {errors.categories && <span className="flex items-center gap-1 text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase"><AlertCircle size={10} /> {errors.categories}</span>}
             </div>
 
+            {/* Image Section */}
             <div className="p-5 bg-slate-50 rounded-[2rem] border border-slate-100">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Partner Logo</span>

@@ -47,7 +47,8 @@ export default function LoginForm({ onSubmit, onForgotPassword }) {
             required
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
-            className="block w-full pl-11 pr-12 py-3 md:py-2.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all text-sm md:text-base"
+            className="block w-full pl-11 pr-12 py-3 md:py-2.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all text-sm md:text-base 
+  [&::-ms-reveal]:hidden [&::-ms-clear]:hidden" 
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
@@ -63,7 +64,7 @@ export default function LoginForm({ onSubmit, onForgotPassword }) {
 
       {/* Forgot Password Link */}
       <div className="flex justify-end px-1">
-        <button 
+        <button
           type="button"
           onClick={onForgotPassword}
           className="text-[11px] md:text-xs font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-wider transition-colors"

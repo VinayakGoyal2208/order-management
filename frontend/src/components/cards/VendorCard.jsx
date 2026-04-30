@@ -1,6 +1,20 @@
 import { ArrowRight, MapPin, Tag } from "lucide-react";
 
 export default function VendorCard({ vendor, onClick }) {
+  // Array of color schemes for the tags
+  const tagColors = [
+    "bg-emerald-50 text-emerald-600 border-emerald-100",
+    "bg-blue-50 text-blue-600 border-blue-100",
+    "bg-purple-50 text-purple-600 border-purple-100",
+    "bg-amber-50 text-amber-600 border-amber-100",
+    "bg-rose-50 text-rose-600 border-rose-100",
+  ];
+
+  // Ensure category is always an array for mapping
+  const categories = Array.isArray(vendor.category) 
+    ? vendor.category 
+    : vendor.category ? [vendor.category] : ["General"];
+
   return (
     <div
       onClick={onClick}
@@ -9,21 +23,33 @@ export default function VendorCard({ vendor, onClick }) {
       {/* 🖼️ Fixed Aspect Ratio Image Container */}
       <div className="relative aspect-[16/10] bg-gray-50 shrink-0 overflow-hidden border-b border-gray-50">
         <img
-          src={vendor.image} 
+          src={vendor.image}
           alt={vendor.companyName}
           className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110"
           onError={(e) => {
-            e.target.src = "";
+            e.target.src = "https://via.placeholder.com/400x300?text=No+Image";
             e.target.className = "w-full h-full object-cover opacity-20 grayscale";
           }}
         />
-        
-        {/* Floating Category Tag */}
-        <div className="absolute top-3 left-3 md:top-4 md:left-4">
-          <span className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md text-[9px] md:text-[10px] font-black px-3 py-1.5 rounded-full text-emerald-600 uppercase tracking-widest shadow-sm border border-white/50 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
-            <Tag size={10} />
-            {vendor.category || "General"}
-          </span>
+
+        {/* 🏷️ MULTIPLE CATEGORY TAGS */}
+        <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-wrap gap-1.5 max-w-[90%]">
+          {categories.map((cat, index) => {
+            // Assign a color based on the index (loops back if index > array length)
+            const colorClass = tagColors[index % tagColors.length];
+            
+            return (
+              <span
+                key={index}
+                className={`flex items-center gap-1 backdrop-blur-md text-[8px] md:text-[9px] font-black px-2.5 py-1.5 rounded-full uppercase tracking-wider shadow-sm border transition-all duration-300 
+                  ${colorClass} 
+                  group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-500`}
+              >
+                <Tag size={8} />
+                {cat}
+              </span>
+            );
+          })}
         </div>
       </div>
 
@@ -40,7 +66,7 @@ export default function VendorCard({ vendor, onClick }) {
               {vendor.address}
             </p>
           </div>
-          
+
           <p className="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-tight mt-auto">
             Contact: <span className="text-gray-500">{vendor.ownerName}</span>
           </p>
@@ -58,7 +84,6 @@ export default function VendorCard({ vendor, onClick }) {
             </span>
           </div>
 
-          {/* This button now turns Emerald on hover of the whole card */}
           <div className="bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white p-2.5 rounded-xl transition-all duration-300 group-hover:rotate-[-45deg] active:scale-90">
             <ArrowRight size={20} />
           </div>

@@ -126,7 +126,6 @@ export default function Cart() {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-8 lg:py-16">
-        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
             <Link to="/" className="inline-flex items-center gap-2 text-slate-400 font-bold text-xs uppercase tracking-[0.2em] mb-4 hover:text-emerald-600 transition-colors">
@@ -153,10 +152,45 @@ export default function Cart() {
         ) : cart.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-            {/* Left Content */}
-            <div className="lg:col-span-7 space-y-10">
+            {/* Left Content Area */}
+            <div className="lg:col-span-7 space-y-12">
 
-              {/* Profile Card */}
+              {/* SECTION 1: ITEMS SUMMARY (Moved to Top) */}
+              <div className="space-y-6">
+                <h2 className="text-xl font-black text-slate-900 px-4 flex items-center gap-3">
+                  <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs italic">1</span>
+                  Inventory Summary
+                </h2>
+                <div className="space-y-4 px-2">
+                  {cart.map(item => (
+                    <div key={item._id} className="bg-white p-5 rounded-[2.5rem] border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-xl hover:shadow-slate-100/50 transition-all group">
+                      <div className="flex items-center gap-5 w-full sm:w-auto">
+                        <div className="w-20 h-20 bg-slate-50 rounded-[1.7rem] flex items-center justify-center text-emerald-600 border border-slate-100 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-500 overflow-hidden">
+                          {item.image ? <img src={item.image} className="w-full h-full object-cover"/> : <Package size={28} />}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-slate-800 text-base mb-1 truncate">{item.name}</h3>
+                          <div className="flex items-center gap-3">
+                            <span className="text-emerald-600 font-black text-lg">₹{item.price?.toLocaleString()}</span>
+                            <span className="text-slate-300 text-sm">/ unit</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-6 w-full sm:w-auto justify-between bg-slate-50/50 p-2 rounded-2xl">
+                        <div className="flex items-center bg-white rounded-xl p-1 shadow-sm border border-slate-100">
+                          <button onClick={() => updateQuantity(item._id, (item.quantity || 1) - 1)} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-red-500"><Minus size={14} /></button>
+                          <span className="px-5 font-black text-sm text-slate-800">{item.quantity || 1}</span>
+                          <button onClick={() => updateQuantity(item._id, (item.quantity || 1) + 1)} className="p-2 hover:bg-slate-50 rounded-lg text-emerald-600"><Plus size={14} /></button>
+                        </div>
+                        <button onClick={() => removeFromCart(item._id)} className="p-3 text-slate-300 hover:text-white hover:bg-red-500 rounded-xl transition-all"><Trash2 size={20} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* SECTION 2: Profile Cards */}
               <div className="bg-white p-2 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-2">
                 <div className="w-full md:w-1/2 bg-emerald-50/50 p-6 rounded-[2rem] flex items-center gap-4">
                   <div className="p-3 bg-white rounded-xl shadow-sm text-emerald-600"><User size={20} /></div>
@@ -174,10 +208,10 @@ export default function Cart() {
                 </div>
               </div>
 
-              {/* Form Section */}
+              {/* SECTION 3: DELIVERY FORM */}
               <div className="bg-white p-8 md:p-12 rounded-[3.5rem] border border-slate-100 shadow-sm">
                 <h2 className="text-xl font-black text-slate-900 mb-10 flex items-center gap-3">
-                  <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs italic">1</span>
+                  <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs italic">2</span>
                   Delivery Information
                 </h2>
 
@@ -224,43 +258,9 @@ export default function Cart() {
                 </div>
               </div>
 
-              {/* Items List */}
-              <div className="space-y-6">
-                <h2 className="text-xl font-black text-slate-900 px-4 flex items-center gap-3">
-                  <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs italic">2</span>
-                  Inventory Summary
-                </h2>
-                <div className="space-y-4 px-2">
-                  {cart.map(item => (
-                    <div key={item._id} className="bg-white p-5 rounded-[2.5rem] border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6 hover:shadow-xl hover:shadow-slate-100/50 transition-all group">
-                      <div className="flex items-center gap-5 w-full sm:w-auto">
-                        <div className="w-20 h-20 bg-slate-50 rounded-[1.7rem] flex items-center justify-center text-emerald-600 border border-slate-100 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-500">
-                          <Package size={28} />
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="font-bold text-slate-800 text-base mb-1 truncate">{item.name}</h3>
-                          <div className="flex items-center gap-3">
-                            <span className="text-emerald-600 font-black text-lg">₹{item.price?.toLocaleString()}</span>
-                            <span className="text-slate-300 text-sm">/ unit</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-6 w-full sm:w-auto justify-between bg-slate-50/50 p-2 rounded-2xl">
-                        <div className="flex items-center bg-white rounded-xl p-1 shadow-sm border border-slate-100">
-                          <button onClick={() => updateQuantity(item._id, (item.quantity || 1) - 1)} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-red-500"><Minus size={14} /></button>
-                          <span className="px-5 font-black text-sm text-slate-800">{item.quantity || 1}</span>
-                          <button onClick={() => updateQuantity(item._id, (item.quantity || 1) + 1)} className="p-2 hover:bg-slate-50 rounded-lg text-emerald-600"><Plus size={14} /></button>
-                        </div>
-                        <button onClick={() => removeFromCart(item._id)} className="p-3 text-slate-300 hover:text-white hover:bg-red-500 rounded-xl transition-all"><Trash2 size={20} /></button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
-            {/* Right Sidebar - Total */}
+            {/* Right Sidebar - Sticky Total */}
             <div className="lg:col-span-5">
               <div className="sticky top-10">
                 <div className="bg-slate-900 p-10 rounded-[4rem] shadow-2xl relative overflow-hidden">
@@ -304,20 +304,8 @@ export default function Cart() {
                     Encrypted Transaction
                   </p>
                 </div>
-
-                {/* Help Card */}
-                <div className="mt-6 p-8 bg-white border border-slate-100 rounded-[2.5rem] flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">
-                    <ShieldCheck size={24} />
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-800 text-sm">Buyer Protection</p>
-                    <p className="text-slate-400 text-xs font-medium">Your purchase is secured by the platform.</p>
-                  </div>
-                </div>
               </div>
             </div>
-
           </div>
         ) : (
           <div className="text-center py-40 bg-white rounded-[4rem] border-2 border-dashed border-slate-100">

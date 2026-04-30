@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import API from "../../services/api";
 import StatCard from "../../components/cards/StatCard";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { LayoutDashboard, RefreshCcw, TrendingUp } from "lucide-react";
+import { LayoutDashboard, RefreshCcw, TrendingUp, Users, Store, Activity } from "lucide-react";
 
 export default function AdminDashboard() {
   const [userCount, setUserCount] = useState(0);
@@ -75,23 +75,19 @@ const fetchDashboardData = async () => {
                 title="Total Users" 
                 value={userCount} 
                 change="+10%" 
-                isUp={true} 
+                icon={Users}
+                isUp={true}
+                link="/admin-users" 
               />
               <StatCard 
                 title="Total Vendors" 
                 value={vendorCount} 
                 change="+5%" 
+                icon={Store}
+                color="purple"
                 isUp={true} 
+                link="/admin-vendors"
               />
-              {/* Added a placeholder 3rd card to balance the grid on desktop */}
-              <div className="hidden lg:block">
-                <StatCard 
-                  title="System Health" 
-                  value="99.9%" 
-                  change="Optimal" 
-                  isUp={true} 
-                />
-              </div>
             </div>
 
             {/* Chart Section */}

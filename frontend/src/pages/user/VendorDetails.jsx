@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import API from "../../services/api";
 import { useCart } from "../../context/useCart";
 import { useAuth } from "../../context/useAuth";
+import SideCart from "../../components/common/SideCart";
 import { ShoppingBag, MapPin, ShieldCheck, ArrowLeft, Store, Lock, LogIn, Info, Plus, Minus } from "lucide-react";
 
 export default function VendorDetails() {
@@ -12,8 +13,8 @@ export default function VendorDetails() {
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Destructure cart items and update functions from your context
   const { addToCart, cart, updateQuantity, removeFromCart } = useCart();
 
   useEffect(() => {
@@ -47,8 +48,12 @@ export default function VendorDetails() {
     fetchData();
   }, [id]);
 
-  // Helper to find if a product is already in the cart
   const getCartItem = (productId) => cart.find(item => item._id === productId);
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    setIsDrawerOpen(true);
+  };
 
   if (loading) {
     return (
@@ -63,6 +68,8 @@ export default function VendorDetails() {
 
   return (
     <Layout>
+      <SideCart isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+      
       {!vendor ? (
         <div className="text-center py-20 px-4">
           <h2 className="text-2xl font-black text-slate-800">Vendor Profile Not Found</h2>
@@ -74,42 +81,58 @@ export default function VendorDetails() {
         <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
           
           {/* ================= VENDOR HEADER ================= */}
-          <div className="relative bg-white p-6 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 mb-8 md:mb-12 overflow-hidden group">
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-slate-50 border border-slate-100 overflow-hidden shrink-0 shadow-inner">
-                <img 
-                  src={vendor.displayLogo} 
-                  alt={vendor.companyName}
-                  className="w-full h-full object-contain p-2"
-                  onError={(e) => e.target.src = "https://via.placeholder.com/150?text=Logo"}
-                />
-              </div>
+{/* ================= VENDOR HEADER ================= */}
+<div className="relative bg-white p-6 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 mb-8 md:mb-12 overflow-hidden group">
+  <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
+    <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-slate-50 border border-slate-100 overflow-hidden shrink-0 shadow-inner">
+      <img 
+        src={vendor.displayLogo} 
+        alt={vendor.companyName}
+        className="w-full h-full object-contain p-2"
+        onError={(e) => e.target.src = "https://via.placeholder.com/150?text=Logo"}
+      />
+    </div>
 
-              <div className="flex-1">
-                <div className="flex items-center gap-2 text-emerald-600 mb-3">
-                  <div className="p-1 bg-emerald-100 rounded-md">
-                      <ShieldCheck size={12} />
-                  </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest">Verified Supplier</span>
-                </div>
-                
-                <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
-                  {vendor.companyName}
-                </h1>
-                
-                <div className="flex flex-wrap items-center gap-3 mt-4">
-                  <span className="bg-slate-900 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-                    {vendor.category || "General"}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-slate-500 font-bold text-xs uppercase tracking-tight">
-                    <MapPin size={16} className="text-emerald-500" />
-                    <span>{vendor.fullAddress || vendor.address }</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <Store className="absolute -bottom-6 -right-6 w-32 h-32 md:w-48 md:h-48 text-slate-100 opacity-20 -rotate-12 group-hover:rotate-0 transition-transform duration-700" />
-          </div>
+    <div className="flex-1">
+      <div className="flex items-center gap-2 text-emerald-600 mb-3">
+        <div className="p-1 bg-emerald-100 rounded-md">
+            <ShieldCheck size={12} />
+        </div>
+        <span className="text-[9px] font-black uppercase tracking-widest">Verified Supplier</span>
+      </div>
+      
+      <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
+        {vendor.companyName}
+      </h1>
+      
+      <div className="flex flex-wrap items-center gap-3 mt-4">
+        {/* --- IMPROVED CATEGORY TAGS --- */}
+        <div className="flex flex-wrap gap-2">
+          {(Array.isArray(vendor.category) 
+            ? vendor.category 
+            : (vendor.category ? vendor.category.replace(/[\[\]"]/g, '').split(',') : ["General"])
+          ).map((cat, index) => (
+            <span 
+              key={index}
+              className="bg-slate-900 text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-slate-200"
+            >
+              {cat.trim()}
+            </span>
+          ))}
+        </div>
+
+        {/* --- VERTICAL DIVIDER (Hidden on mobile) --- */}
+        <div className="hidden md:block w-px h-4 bg-slate-200 mx-1"></div>
+
+        <div className="flex items-center gap-1.5 text-slate-500 font-bold text-xs uppercase tracking-tight">
+          <MapPin size={16} className="text-emerald-500" />
+          <span>{vendor.fullAddress || vendor.address }</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <Store className="absolute -bottom-6 -right-6 w-32 h-32 md:w-48 md:h-48 text-slate-100 opacity-20 -rotate-12 group-hover:rotate-0 transition-transform duration-700" />
+</div>
 
           {/* ================= CATALOG SECTION ================= */}
           <div className="flex items-center justify-between mb-8 px-1">
@@ -136,7 +159,7 @@ export default function VendorDetails() {
             </div>
           ) : products.length === 0 ? (
             <div className="bg-white p-16 rounded-[3rem] text-center border border-dashed border-slate-200">
-               <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No active listings for this vendor.</p>
+                <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No active listings for this vendor.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
@@ -176,7 +199,6 @@ export default function VendorDetails() {
 
                         <div className="mt-6 flex items-center justify-end">
                           {cartItem ? (
-                            /* QUANTITY TOGGLE BLOCK */
                             <div className="flex items-center bg-slate-900 rounded-2xl p-1 shadow-lg shadow-slate-200">
                               <button 
                                 onClick={() => cartItem.quantity > 1 ? updateQuantity(p._id, cartItem.quantity - 1) : removeFromCart(p._id)}
@@ -197,9 +219,8 @@ export default function VendorDetails() {
                               </button>
                             </div>
                           ) : (
-                            /* INITIAL ADD BUTTON */
                             <button 
-                              onClick={() => addToCart(p)}
+                              onClick={() => handleAddToCart(p)}
                               className="w-full md:w-auto bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black hover:bg-slate-900 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 active:scale-95"
                             >
                               <ShoppingBag size={18} /> ADD TO CART

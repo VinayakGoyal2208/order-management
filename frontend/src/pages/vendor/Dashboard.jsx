@@ -40,6 +40,9 @@ export default function Dashboard() {
   };
 
   const totalRevenue = orders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+  const goToOrders = () => {
+    navigate(`/vendor-orders`);
+  };
 
   // --- WAITING ROOM UI ---
   if (isPending) {
@@ -102,36 +105,55 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <StatCard 
-              title="Gross Revenue" 
-              value={`₹${totalRevenue.toLocaleString()}`} 
-              icon={TrendingUp} 
-              color="emerald"
-            />
+            <div className="transition-transform active:scale-95">
+                <StatCard 
+                title="Gross Revenue" 
+                value={`₹${totalRevenue.toLocaleString()}`} 
+                icon={TrendingUp} 
+                color="emerald"
+                />
+            </div>
 
-            <StatCard 
-              title="Total Orders" 
-              value={orders.length} 
-              icon={LayoutDashboard} 
-              color="blue"
-            />
+            {/* 2. Total Orders Card - Links to all orders */}
+            <div 
+                onClick={() => goToOrders("vendor-orders")}
+                className="cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+            >
+                <StatCard 
+                title="Total Orders" 
+                value={orders.length} 
+                icon={LayoutDashboard} 
+                color="blue"
+                />
+            </div>
 
-            <StatCard
-              title="Pending Action"
-              value={orders.filter((o) => o.status?.toLowerCase() === "pending").length}
-              icon={Clock} 
-              color="orange"
-            />
+            {/* 3. Pending Card - Links to filtered pending orders */}
+            <div 
+                onClick={() => goToOrders("vendor-orders")}
+                className="cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+            >
+                <StatCard
+                title="Pending Action"
+                value={orders.filter((o) => o.status?.toLowerCase() === "pending").length}
+                icon={Clock} 
+                color="orange"
+                />
+            </div>
 
-            <StatCard
-              title="Successful"
-              value={orders.filter((o) => o.status?.toLowerCase() === "delivered" || o.status?.toLowerCase() === "completed").length}
-              icon={CheckCircle} 
-              color="purple"
-            />
+            {/* 4. Successful Card - Links to delivered orders */}
+            <div 
+                onClick={() => goToOrders("vendor-orders")}
+                className="cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+            >
+                <StatCard
+                title="Successful"
+                value={orders.filter((o) => ["delivered", "completed"].includes(o.status?.toLowerCase())).length}
+                icon={CheckCircle} 
+                color="purple"
+                />
+            </div>
           </div>
         )}
-
         <div className="mt-10 p-10 border-2 border-dashed border-slate-200 rounded-[3rem] text-center">
              <p className="text-slate-400 font-black uppercase tracking-widest text-xs">
                 Detailed Analytics & Order History Coming Soon

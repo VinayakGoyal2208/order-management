@@ -1,6 +1,7 @@
 import Layout from "../../components/common/Layout";
 import { useEffect, useState } from "react";
 import API from "../../services/api";
+import { IMG_URL } from "../../services/api";
 import {
     Package,
     User,
@@ -8,7 +9,8 @@ import {
     Clock,
     CheckCircle,
     Filter,
-    ChevronRight
+    Truck,
+    Navigation
 } from "lucide-react";
 
 export default function VendorOrders() {
@@ -19,13 +21,11 @@ export default function VendorOrders() {
     useEffect(() => {
         API.get("/orders/vendor")
             .then(res => {
-                // --- NEWEST ORDER FIRST SORTING ---
                 const sortedData = res.data.sort((a, b) => {
                     const dateA = a.createdAt ? new Date(a.createdAt) : new Date(parseInt(a._id.substring(0, 8), 16) * 1000);
                     const dateB = b.createdAt ? new Date(b.createdAt) : new Date(parseInt(b._id.substring(0, 8), 16) * 1000);
                     return dateB - dateA;
                 });
-
                 setOrders(sortedData);
                 setLoading(false);
             })
@@ -51,10 +51,18 @@ export default function VendorOrders() {
         </Layout>
     );
 
+    const getImageUrl = (path) => {
+        if (!path) return "";
+        if (path.startsWith("http") || path.startsWith("data:")) return path;
+
+        const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
+
+        return `${IMG_URL}/${cleanPath}`;
+    };
+
     return (
         <Layout>
             <div className="max-w-6xl mx-auto px-4 py-6 md:py-12">
-                {/* Header & Filter */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
                     <div>
                         <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">Incoming Orders</h1>
@@ -73,12 +81,14 @@ export default function VendorOrders() {
                             <option value="all">All Shipments</option>
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="in-transit">In Transit</option>
+                            <option value="out-for-delivery">Out for Delivery</option>
                             <option value="delivered">Delivered</option>
                         </select>
                     </div>
                 </div>
 
-                {/* Orders List */}
                 <div className="space-y-4 md:space-y-6">
                     {filteredOrders.length === 0 ? (
                         <div className="bg-white p-12 md:p-20 rounded-[2.5rem] text-center border-2 border-dashed border-slate-100">
@@ -88,8 +98,6 @@ export default function VendorOrders() {
                     ) : (
                         filteredOrders.map(o => (
                             <div key={o._id} className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden hover:border-emerald-200 transition-all duration-300">
-
-                                {/* Responsive Top Bar */}
                                 <div className="bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100">
                                     <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-white px-2 py-1 rounded-md border border-slate-100">
@@ -103,10 +111,7 @@ export default function VendorOrders() {
                                     </div>
                                 </div>
 
-                                {/* Order Content Grid */}
                                 <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-                                    {/* Customer Info */}
                                     {/* Customer Info */}
                                     <div className="space-y-4">
                                         <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
@@ -115,16 +120,11 @@ export default function VendorOrders() {
                                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                             <p className="font-black text-slate-800 text-sm">{o.customerName}</p>
                                             <p className="text-[11px] text-slate-500 font-medium truncate">{o.customerEmail}</p>
-
                                             {o.customerPhone && (
-                                                <a
-                                                    href={`tel:${o.customerPhone}`}
-                                                    className="text-[11px] text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1"
-                                                >
+                                                <a href={`tel:${o.customerPhone}`} className="text-[11px] text-emerald-600 font-bold hover:underline flex items-center gap-1 mt-1">
                                                     {o.customerPhone}
                                                 </a>
                                             )}
-
                                             <div className="flex items-start gap-2 pt-3 mt-3 border-t border-slate-200/50">
                                                 <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
                                                 <p className="text-xs leading-relaxed text-slate-600 font-medium">{o.shippingAddress}</p>
@@ -137,39 +137,77 @@ export default function VendorOrders() {
                                         <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
                                             <Package size={14} className="text-emerald-500" /> Manifest
                                         </h3>
-                                        <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                                        <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                             {o.items?.map((item, idx) => (
-                                                <div key={idx} className="flex justify-between items-center text-xs p-2 bg-white border border-slate-50 rounded-lg shadow-sm">
-                                                    <p className="font-bold text-slate-700">
-                                                        <span className="inline-block w-6 text-emerald-600">x{item.quantity}</span>
-                                                        <span className="truncate">{item.name}</span>
+                                                <div key={idx} className="flex justify-between items-center text-xs p-2 bg-white border border-slate-50 rounded-xl shadow-sm gap-3">
+                                                    <div className="flex items-center gap-3 truncate">
+                                                        {/* Item Image */}
+                                                        {/* In VendorOrders.jsx inside o.items.map */}
+                                                        <div className="h-10 w-10 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
+                                                            {/* Try multiple common field names: .image, .logo, or .productImage */}
+                                                            {(item.product?.image || item.image) ? (
+                                                                <img
+                                                                    src={getImageUrl(item.product?.image || item.image)}
+                                                                    alt={item.name}
+                                                                    className="h-full w-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.onerror = null;
+                                                                        e.target.src = "https://via.placeholder.com/40?text=NA";
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <div className="h-full w-full flex items-center justify-center">
+                                                                    <Package size={16} className="text-slate-300" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="truncate">
+                                                            <p className="font-bold text-slate-700 truncate">
+                                                                <span className="inline-block text-emerald-600 mr-1">x{item.quantity}</span>
+                                                                {item.name}
+                                                            </p>
+                                                            <p className="text-[10px] text-slate-400 font-medium">Unit: ₹{item.price?.toLocaleString()}</p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-slate-700 font-black shrink-0">
+                                                        ₹{(item.price * item.quantity).toLocaleString()}
                                                     </p>
-                                                    <p className="text-slate-400 font-black">₹{item.price?.toLocaleString()}</p>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex flex-col justify-center gap-3 bg-slate-50/50 p-4 rounded-[1.5rem] lg:bg-transparent lg:p-0">
-                                        <h3 className="lg:hidden text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Update Status</h3>
+                                    <div className="flex flex-col justify-center gap-2 bg-slate-50/50 p-4 rounded-[1.5rem] lg:bg-transparent lg:p-0">
+                                        <h3 className="lg:hidden text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Logistics Progress</h3>
+
                                         <button
                                             onClick={() => updateStatus(o._id, "processing")}
-                                            className={`flex items-center justify-center gap-3 py-3.5 rounded-xl font-black text-[10px] tracking-widest transition-all active:scale-95 ${o.status === 'processing'
-                                                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-200'
-                                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-amber-500 hover:text-white'
-                                                }`}
+                                            className={`flex items-center justify-center gap-3 py-2.5 rounded-xl font-black text-[9px] tracking-widest transition-all ${o.status === 'processing' ? 'bg-amber-500 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
                                         >
-                                            <Clock size={16} /> {o.status === 'processing' ? 'IN PROCESSING' : 'START PROCESSING'}
+                                            <Clock size={14} /> PROCESSING
                                         </button>
+
+                                        <button
+                                            onClick={() => updateStatus(o._id, "in-transit")}
+                                            className={`flex items-center justify-center gap-3 py-2.5 rounded-xl font-black text-[9px] tracking-widest transition-all ${o.status === 'in-transit' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+                                        >
+                                            <Truck size={14} /> IN TRANSIT
+                                        </button>
+
+                                        <button
+                                            onClick={() => updateStatus(o._id, "out-for-delivery")}
+                                            className={`flex items-center justify-center gap-3 py-2.5 rounded-xl font-black text-[9px] tracking-widest transition-all ${o.status === 'out-for-delivery' ? 'bg-purple-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+                                        >
+                                            <Navigation size={14} /> OUT FOR DELIVERY
+                                        </button>
+
                                         <button
                                             onClick={() => updateStatus(o._id, "delivered")}
-                                            className={`flex items-center justify-center gap-3 py-3.5 rounded-xl font-black text-[10px] tracking-widest transition-all active:scale-95 ${o.status === 'delivered'
-                                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-emerald-600 hover:text-white'
-                                                }`}
+                                            className={`flex items-center justify-center gap-3 py-2.5 rounded-xl font-black text-[9px] tracking-widest transition-all ${o.status === 'delivered' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
                                         >
-                                            <CheckCircle size={16} /> {o.status === 'delivered' ? 'SHIPMENT DELIVERED' : 'MARK DELIVERED'}
+                                            <CheckCircle size={14} /> DELIVERED
                                         </button>
                                     </div>
                                 </div>
@@ -186,6 +224,9 @@ function StatusBadge({ status }) {
     const styles = {
         pending: "bg-orange-50 text-orange-600 border-orange-100",
         processing: "bg-amber-50 text-amber-600 border-amber-100",
+        shipped: "bg-blue-50 text-blue-600 border-blue-100",
+        "in-transit": "bg-indigo-50 text-indigo-600 border-indigo-100",
+        "out-for-delivery": "bg-purple-50 text-purple-600 border-purple-100",
         delivered: "bg-emerald-50 text-emerald-600 border-emerald-100",
     };
 

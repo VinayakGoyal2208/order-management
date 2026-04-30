@@ -1,4 +1,6 @@
-export default function StatCard({ title, value, icon: Icon, color = "emerald" }) {
+import { Link } from "react-router-dom";
+
+export default function StatCard({ title, value, icon: Icon, color = "emerald", link = "#" }) {
   const colorMap = {
     emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
     blue: "bg-blue-50 text-blue-600 border-blue-100",
@@ -10,14 +12,15 @@ export default function StatCard({ title, value, icon: Icon, color = "emerald" }
   const selectedColor = colorMap[color] || colorMap.emerald;
 
   return (
-    <div className="group bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-slate-200 transition-all duration-300 active:scale-[0.98]">
-      
-      {/* Icon Container: Adaptive sizing and subtle border */}
+    <Link 
+      to={link} 
+      className="group bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-slate-200 transition-all duration-300 active:scale-[0.98] cursor-pointer block"
+    >
+      {/* Icon Container */}
       <div className={`p-3 md:p-4 rounded-2xl shrink-0 border transition-transform group-hover:scale-110 duration-300 ${selectedColor}`}>
         {Icon ? (
           <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
-             {/* Note: Icon size passed from parent, but handled here for responsiveness */}
-             {Icon && <Icon size={24} />}
+            <Icon size={24} />
           </div>
         ) : (
           <div className="w-5 h-5 md:w-6 md:h-6 bg-current opacity-20 rounded-full" />
@@ -33,6 +36,6 @@ export default function StatCard({ title, value, icon: Icon, color = "emerald" }
           {value}
         </p>
       </div>
-    </div>
+    </Link>
   );
 }

@@ -62,8 +62,10 @@ export default function Sidebar({ role, isOpen, setIsOpen }) {
             <>
               <NavLink to="/vendor-dashboard" className={linkStyle}><LayoutDashboard size={18} /> Dashboard</NavLink>
               <NavLink to="/vendor-orders" className={linkStyle}><ShoppingBag size={18} /> Orders</NavLink>
+              <NavLink to="/vendor-payments" className={linkStyle}><PlusCircle size={18} /> Vendor Payments</NavLink>
               <NavLink to="/vendor-products" className={linkStyle}><Package size={18} /> Products</NavLink>
               <NavLink to="/add-product" className={linkStyle}><PlusCircle size={18} /> Add Product</NavLink>
+
             </>
           )}
 

@@ -1,9 +1,11 @@
 // services/api.js
 import axios from "axios";
 
-const BASE_URL = window.location.hostname === "localhost" 
-  ? "http://localhost:5000/api" 
-  : "https://order-management-backend-uqtn.onrender.com/api"; 
+export const IMG_URL = window.location.hostname === "localhost" 
+  ? "http://localhost:5000" 
+  : "https://order-management-backend-uqtn.onrender.com"; 
+
+const BASE_URL = `${IMG_URL}/api`;
 
 const API = axios.create({
   baseURL: BASE_URL,

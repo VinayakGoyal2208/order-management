@@ -35,14 +35,14 @@ export default function Users() {
         }
     };
 
-const filteredUsers = users.filter(u => 
-    u.role !== 'admin' && 
-    u.role !== 'vendor' &&
-    (
-        u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-);
+    const filteredUsers = users.filter(u =>
+        u.role !== 'admin' &&
+        u.role !== 'vendor' &&
+        (
+            u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    );
 
     return (
         <Layout>
@@ -58,7 +58,7 @@ const filteredUsers = users.filter(u =>
 
                     <div className="relative w-full md:w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input 
+                        <input
                             type="text"
                             placeholder="Search by name or email..."
                             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all shadow-sm"
@@ -69,7 +69,7 @@ const filteredUsers = users.filter(u =>
 
                 {/* Main Content Area */}
                 <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden">
-                    
+
                     {/* Desktop Table (Hidden on Mobile) */}
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -108,7 +108,7 @@ const filteredUsers = users.filter(u =>
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{u.role}</span>
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={() => deleteUser(u._id)}
                                         disabled={u.role === 'admin'}
                                         className="p-2 text-rose-400 disabled:opacity-20"
@@ -157,9 +157,8 @@ function UserRow({ user, onDelete }) {
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{user.phone || 'No Phone'}</div>
             </td>
             <td className="p-5">
-                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                    user.role === 'admin' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'
-                }`}>
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${user.role === 'admin' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'
+                    }`}>
                     {user.role === 'admin' && <Shield size={10} />}
                     {user.role}
                 </span>
@@ -168,7 +167,7 @@ function UserRow({ user, onDelete }) {
                 {new Date(user.createdAt).toLocaleDateString()}
             </td>
             <td className="p-5 text-right">
-                <button 
+                <button
                     onClick={() => onDelete(user._id)}
                     disabled={user.role === 'admin'}
                     className="p-2 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all disabled:opacity-20"
