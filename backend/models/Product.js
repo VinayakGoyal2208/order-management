@@ -28,7 +28,7 @@ const productSchema = new mongoose.Schema(
     category: { 
       type: String, 
       default: "General",
-      index: true // Added index for faster filtering by category
+      index: true 
     },
     stock: { 
       type: Number, 

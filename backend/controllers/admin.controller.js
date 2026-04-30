@@ -1,12 +1,7 @@
 import Vendor from "../models/Vendor.js";
 
-/**
- * @desc    Get all pending vendor applications
- * @route   GET /api/admin/pending-vendors
- */
 export const getPendingVendors = async (req, res) => {
   try {
-    // Fetches only businesses waiting for the first-time approval
     const pending = await Vendor.find({ status: "pending", role: "vendor" }).select("-password");
     res.json(pending);
   } catch (err) {
@@ -14,10 +9,6 @@ export const getPendingVendors = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get all registered businesses (Active/Suspended/Pending)
- * @route   GET /api/admin/all-vendors
- */
 export const getAllVendors = async (req, res) => {
   try {
     // This finds ALL vendors regardless of status
@@ -28,13 +19,9 @@ export const getAllVendors = async (req, res) => {
   }
 };
 
-/**
- * @desc    Approve, Reject, or Suspend a Vendor
- * @route   PATCH /api/admin/vendor-status/:id
- */
 export const updateVendor = async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body; // Expecting "active", "suspended", or "pending"
+  const { status } = req.body; 
 
   try {
     // 1. Validation for allowed status strings

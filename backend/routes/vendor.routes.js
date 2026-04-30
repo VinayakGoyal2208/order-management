@@ -11,7 +11,11 @@ import { protect } from "../middleware/auth.Middleware.js";
 import { authorize } from "../middleware/role.Middleware.js";
 
 const router = express.Router();
-const upload = multer(); 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+});
+const upload = multer({ storage });
 
 
 

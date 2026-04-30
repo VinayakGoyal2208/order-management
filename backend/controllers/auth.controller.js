@@ -8,13 +8,19 @@ const otpStore = new Map();
 
 /**
  * @desc    Personal Tab Registration (Regular Users)
+ * Updated to prevent users from signing up if they are already Vendors
  */
 export const registerUser = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
     
-    const exists = await User.findOne({ $or: [{ email }, { phone }] });
-    if (exists) return res.status(400).json({ msg: "User already exists with this email/phone" });
+    // Check BOTH collections to prevent duplicate accounts across roles
+    const userExists = await User.findOne({ $or: [{ email }, { phone }] });
+    const vendorExists = await Vendor.findOne({ $or: [{ email }, { phone }] });
+
+    if (userExists || vendorExists) {
+      return res.status(400).json({ msg: "An account already exists with this email/phone (User or Business)" });
+    }
 
     const hashed = await hashPassword(password);
     const user = await User.create({ 
@@ -37,38 +43,48 @@ export const registerUser = async (req, res) => {
 };
 
 /**
- * @desc    
+ * @desc    Business Registration
  */
 export const registerVendor = async (req, res) => {
   try {
-    // 1. Log incoming request to verify Multer is working
-    console.log("Files:", req.file);
-    console.log("Body:", req.body);
-
     const { 
       companyName, ownerName, email, phone, 
       category, streetAddress, city, state, pincode, 
       password, image 
     } = req.body;
 
-    // Safety: check if password exists before hashing
     if (!password) {
       return res.status(400).json({ msg: "Password is required" });
     }
 
-    const exists = await User.findOne({ email });
+    // 1. STRICTOR CHECK: Ensure email doesn't exist in User OR Vendor models
+    const userExists = await User.findOne({ email });
     const vendorExists = await Vendor.findOne({ email });
-    if (exists || vendorExists) {
-      return res.status(400).json({ msg: "Business email already registered" });
+    
+    if (userExists) {
+       return res.status(400).json({ msg: "This email is already registered as a Personal User account." });
+    }
+    if (vendorExists) {
+       return res.status(400).json({ msg: "This Business email is already registered." });
     }
 
+    // 2. CATEGORY HANDLING: Parse stringified array from FormData
+    let finalCategories = category;
+    try {
+      if (typeof category === 'string') {
+        finalCategories = JSON.parse(category);
+      }
+    } catch (e) {
+      finalCategories = category; // Fallback if it's already an array or plain string
+    }
+
+    // 3. IMAGE HANDLING: Prioritize file upload over URL link
     let finalLogo = image; 
     if (req.file) {
-      // Use path if you need the full path, or filename for local storage
+      // If using Cloudinary/S3, use req.file.path. If local, use req.file.filename
       finalLogo = req.file.path || req.file.filename; 
     }
 
-    // Wrap hashing in try-catch or check if hashPassword function is imported correctly
     const hashed = await hashPassword(password);
 
     const newVendor = await Vendor.create({
@@ -76,13 +92,13 @@ export const registerVendor = async (req, res) => {
       ownerName,
       email,
       phone,
-      category,
+      category: finalCategories, 
       streetAddress,
       city,
       state,
       pincode,
       password: hashed,
-      logo: finalLogo || "", // Ensure this isn't null if schema requires string
+      logo: finalLogo || "", 
       role: "vendor",
       status: "pending" 
     });
@@ -91,11 +107,9 @@ export const registerVendor = async (req, res) => {
       msg: "Application submitted successfully. Please wait for Admin approval." 
     });
   } catch (err) {
-    // If it's a Mongoose Validation Error (like missing fields)
     if (err.name === 'ValidationError') {
       return res.status(400).json({ msg: err.message });
     }
-    
     console.error("CRITICAL ERROR:", err); 
     res.status(500).json({ msg: "Internal Server Error: " + err.message });
   }

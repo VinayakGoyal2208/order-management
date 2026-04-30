@@ -10,7 +10,7 @@ export const createVendor = async (req, res) => {
     const {
       companyName, ownerName, email, phone,
       category, streetAddress, city, state,
-      pincode, password, status 
+      pincode, password, status
     } = req.body;
 
     // Handle Image: Multer file path OR direct URL string
@@ -38,13 +38,12 @@ export const createVendor = async (req, res) => {
       pincode,
       password: hashed,
       logo: finalImage || "",
-      // Defaults to 'pending' unless Admin explicitly sends 'active'
-      status: status || "pending" 
+      status: status || "pending"
     });
 
-    res.status(201).json({ 
-      msg: vendor.status === "active" ? "Vendor onboarded successfully!" : "Application submitted for approval!", 
-      vendor 
+    res.status(201).json({
+      msg: vendor.status === "active" ? "Vendor onboarded successfully!" : "Application submitted for approval!",
+      vendor
     });
   } catch (err) {
     console.error("Backend Error:", err);
@@ -80,19 +79,19 @@ export const getVendorById = async (req, res) => {
 export const updateVendor = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // We use $set to only update the fields provided in req.body
     const vendor = await Vendor.findByIdAndUpdate(
       id,
-      { $set: req.body }, 
+      { $set: req.body },
       { new: true, runValidators: true }
     );
 
     if (!vendor) return res.status(404).json({ msg: "Vendor not found" });
 
-    res.json({ 
-      msg: "Update successful", 
-      vendor: vendor 
+    res.json({
+      msg: "Update successful",
+      vendor: vendor
     });
   } catch (err) {
     res.status(500).json({ msg: err.message });

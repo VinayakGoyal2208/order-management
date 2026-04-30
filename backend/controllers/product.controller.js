@@ -47,14 +47,13 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// backend/controllers/product.controller.js
-
 export const getProducts = async (req, res) => {
   try {
-    // .populate("vendor") looks at the vendor field in your Product model 
-    // and fetches that vendor's details from the Vendor collection.
-    const products = await Product.find()
-      .populate("vendor", "companyName logo ownerName") 
+    const { vendor } = req.query; // Capture the ?vendor=ID from the URL
+    const filter = vendor ? { vendor } : {}; // If vendor ID exists, filter by it
+
+    const products = await Product.find(filter)
+      .populate("vendor", "-password") 
       .sort({ createdAt: -1 });
 
     res.status(200).json(products);

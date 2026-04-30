@@ -4,13 +4,13 @@ const orderSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
-    
+
     customerName: String,
     customerEmail: String,
     customerPhone: String,
     shippingAddress: String,
-    pincode: String, 
-    
+    pincode: String,
+
     items: [
       {
         product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
@@ -20,9 +20,19 @@ const orderSchema = new mongoose.Schema(
       },
     ],
     totalAmount: Number,
+    paidAmount: {
+      type: Number,
+      default: 0
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['Pending', 'Partially Paid', 'Paid'],
+      default: 'Pending'
+    },
+    customerName:String,
     status: {
       type: String,
-      enum: ["pending", "processing", "delivered"],
+      enum: ["pending", "processing", "shipped", "in-transit", "out-for-delivery", "delivered"],
       default: "pending",
     },
   },
