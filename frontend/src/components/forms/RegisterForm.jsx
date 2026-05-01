@@ -59,7 +59,7 @@ export default function RegisterForm({ onSubmit }) {
       try {
         await onSubmit(form);
         // Direct login redirect
-        navigate("/"); 
+        navigate("/login", { state: { email: form.email, password: form.password } }); 
       } catch (err) {
         setErrors({ submit: "Registration failed. Please try again." });
       }
