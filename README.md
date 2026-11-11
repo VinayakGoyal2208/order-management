@@ -2,6 +2,8 @@
 
 A B2B marketplace and order management app. Buyers browse suppliers and place orders, vendors manage products and fulfillment, and admins manage users, vendor approvals, and orders.
 
+[Link](https://order-management-mu-five.vercel.app/)
+
 ## Stack
 
 - `frontend/` — React, Vite, React Router, and Tailwind CSS
