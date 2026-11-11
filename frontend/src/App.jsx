@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import Home from "./pages/user/Home";
 
@@ -27,42 +28,45 @@ const Register = lazy(() => import("./pages/auth/Register"));
 
 function App() {
   return (
-    <Suspense fallback={<Loader fullPage />}>
-      <Routes>
-        {/* ================= USER (PUBLIC) ================= */}
-        <Route path="/" element={<Home />} />
-        <Route path="/vendor/:id" element={<VendorDetails />} />
+    <>
+      <Suspense fallback={<Loader fullPage />}>
+        <Routes>
+          {/* ================= USER (PUBLIC) ================= */}
+          <Route path="/" element={<Home />} />
+          <Route path="/vendor/:id" element={<VendorDetails />} />
 
-        {/* ================= AUTH ================= */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+          {/* ================= AUTH ================= */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* ================= USER (PROTECTED) ================= */}
-        <Route path="/cart" element={<ProtectedRoute role="user"><Cart /></ProtectedRoute>} />
-        <Route path="/orders" element={<ProtectedRoute role="user"><Orders /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute role="user"><Profile /></ProtectedRoute>} />
+          {/* ================= USER (PROTECTED) ================= */}
+          <Route path="/cart" element={<ProtectedRoute role="user"><Cart /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute role="user"><Orders /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute role="user"><Profile /></ProtectedRoute>} />
 
-        {/* ================= VENDOR ================= */}
-        <Route path="/vendor-dashboard" element={<ProtectedRoute role="vendor"><VendorDashboard /></ProtectedRoute>} />
-        <Route path="/vendor-orders" element={<ProtectedRoute role="vendor"><VendorOrders /></ProtectedRoute>} />
+          {/* ================= VENDOR ================= */}
+          <Route path="/vendor-dashboard" element={<ProtectedRoute role="vendor"><VendorDashboard /></ProtectedRoute>} />
+          <Route path="/vendor-orders" element={<ProtectedRoute role="vendor"><VendorOrders /></ProtectedRoute>} />
 
-        {/* LEDGER ROUTE */}
-        <Route path="/vendor-payments" element={<ProtectedRoute role="vendor"><VendorPayments /></ProtectedRoute>} />
+          {/* LEDGER ROUTE */}
+          <Route path="/vendor-payments" element={<ProtectedRoute role="vendor"><VendorPayments /></ProtectedRoute>} />
 
-        <Route path="/vendor-products" element={<ProtectedRoute role="vendor"><Products /></ProtectedRoute>} />
-        <Route path="/add-product" element={<ProtectedRoute role="vendor"><AddProduct /></ProtectedRoute>} />
+          <Route path="/vendor-products" element={<ProtectedRoute role="vendor"><Products /></ProtectedRoute>} />
+          <Route path="/add-product" element={<ProtectedRoute role="vendor"><AddProduct /></ProtectedRoute>} />
 
-        {/* ================= ADMIN ================= */}
-        <Route path="/admin-dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin-users" element={<ProtectedRoute role="admin"><Users /></ProtectedRoute>} />
-        <Route path="/admin-orders" element={<ProtectedRoute role="admin"><AdminOrders /></ProtectedRoute>} />
-        <Route path="/admin-vendors" element={<ProtectedRoute role="admin"><Vendors /></ProtectedRoute>} />
-        <Route path="/add-vendor" element={<ProtectedRoute role="admin"><AddVendor /></ProtectedRoute>} />
+          {/* ================= ADMIN ================= */}
+          <Route path="/admin-dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin-users" element={<ProtectedRoute role="admin"><Users /></ProtectedRoute>} />
+          <Route path="/admin-orders" element={<ProtectedRoute role="admin"><AdminOrders /></ProtectedRoute>} />
+          <Route path="/admin-vendors" element={<ProtectedRoute role="admin"><Vendors /></ProtectedRoute>} />
+          <Route path="/add-vendor" element={<ProtectedRoute role="admin"><AddVendor /></ProtectedRoute>} />
 
-        {/* ================= FALLBACK ================= */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
+          {/* ================= FALLBACK ================= */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+      <SpeedInsights />
+    </>
   );
 }
 
