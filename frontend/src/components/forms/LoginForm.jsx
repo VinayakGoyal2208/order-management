@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 
-export default function LoginForm({ onSubmit, onForgotPassword }) {
+export default function LoginForm({ onSubmit }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -60,17 +60,6 @@ export default function LoginForm({ onSubmit, onForgotPassword }) {
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
-      </div>
-
-      {/* Forgot Password Link */}
-      <div className="flex justify-end px-1">
-        <button
-          type="button"
-          onClick={onForgotPassword}
-          className="text-[11px] md:text-xs font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-wider transition-colors"
-        >
-          Forgot password?
-        </button>
       </div>
 
       {/* Submit Button */}

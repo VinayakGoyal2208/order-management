@@ -1,7 +1,6 @@
 import Layout from "../../components/common/Layout";
 import { useEffect, useState, useCallback } from "react";
-import API from "../../services/api";
-import { IMG_URL } from "../../services/api";
+import API, { getImageUrl } from "../../services/api";
 import {
   Trash2, Store, Mail, Phone, MapPin,
   Search, CheckCircle, X, Edit3, Save, ChevronDown, ChevronUp,
@@ -77,12 +76,6 @@ export default function Vendors() {
       console.error("Approval error:", err.response?.data || err.message);
       alert("Approval failed.");
     }
-  };
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith("http")) return path;
-    const cleanPath = path.replace(/\\/g, "/");
-    return `${IMG_URL}/${cleanPath.replace(/^\//, "")}`;
   };
 
   return (

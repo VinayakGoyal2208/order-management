@@ -1,10 +1,8 @@
+import { vendorLogoFields } from "../utils/vendorLogo.js";
 import User from "../models/User.js";
 import Vendor from "../models/Vendor.js";
 import generateToken from "../utils/generateToken.js";
 import { hashPassword, matchPassword } from "../utils/hashPassword.js";
-import nodemailer from "nodemailer";
-
-const otpStore = new Map();
 
 /**
  * @desc    Personal Tab Registration (Regular Users)
@@ -78,16 +76,9 @@ export const registerVendor = async (req, res) => {
       finalCategories = category; // Fallback if it's already an array or plain string
     }
 
-    // 3. IMAGE HANDLING: Prioritize file upload over URL link
-    let finalLogo = image; 
-    if (req.file) {
-      // If using Cloudinary/S3, use req.file.path. If local, use req.file.filename
-      finalLogo = req.file.path || req.file.filename; 
-    }
-
     const hashed = await hashPassword(password);
 
-    const newVendor = await Vendor.create({
+    await Vendor.create({
       companyName,
       ownerName,
       email,
@@ -98,7 +89,7 @@ export const registerVendor = async (req, res) => {
       state,
       pincode,
       password: hashed,
-      logo: finalLogo || "", 
+      ...vendorLogoFields(req.file, image),
       role: "vendor",
       status: "pending" 
     });
@@ -160,83 +151,5 @@ export const login = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ msg: err.message });
-  }
-};
-
-/**
- * @desc    Forgot Password - Send OTP (Common for both User & Vendor)
- */
-export const sendOTP = async (req, res) => {
-  const { email } = req.body; // Removed 'role' from destructuring
-  try {
-    // 1. Search in both collections to find the account
-    let account = await User.findOne({ email });
-    let detectedRole = "user";
-
-    if (!account) {
-      account = await Vendor.findOne({ email });
-      detectedRole = "vendor";
-    }
-
-    if (!account) {
-      return res.status(404).json({ msg: "No account found with this email." });
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // 2. Store the OTP and the DETECTED role in the map
-    otpStore.set(email, { 
-      otp, 
-      role: detectedRole, // We save the role here so resetPassword knows which table to update
-      expires: Date.now() + 300000 
-    });
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    });
-
-    await transporter.sendMail({
-      from: `"B2B Marketplace" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Password Reset OTP",
-      html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee;">
-               <h3>Password Reset Request</h3>
-               <p>Your OTP for password reset is: <b style="font-size: 20px; color: #10b981;">${otp}</b></p>
-               <p>This code expires in 5 minutes.</p>
-             </div>`
-    });
-
-    res.status(200).json({ msg: "OTP sent to your email." });
-  } catch (error) {
-    console.error("OTP Send Error:", error);
-    res.status(500).json({ msg: "Email failed to send." });
-  }
-};
-
-/**
- * @desc    Reset Password (Role is pulled automatically from otpStore)
- */
-export const resetPassword = async (req, res) => {
-  const { email, otp, newPassword } = req.body;
-  const record = otpStore.get(email);
-
-  if (!record || record.otp !== otp || record.expires < Date.now()) {
-    return res.status(400).json({ msg: "Invalid or expired OTP" });
-  }
-
-  try {
-    const hashedPassword = await hashPassword(newPassword);
-    
-    // Use the role we detected during the sendOTP phase
-    const Model = record.role === "vendor" ? Vendor : User;
-
-    await Model.findOneAndUpdate({ email }, { password: hashedPassword });
-
-    // Clean up
-    otpStore.delete(email);
-    res.status(200).json({ msg: "Password updated successfully." });
-  } catch (error) {
-    res.status(500).json({ msg: "Reset failed." });
   }
 };

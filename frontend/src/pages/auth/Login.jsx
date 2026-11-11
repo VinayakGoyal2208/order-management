@@ -160,10 +160,7 @@ export default function Login() {
                     <p className="text-slate-400 text-xs mt-1">Please enter your credentials to continue</p>
                   </div>
                   
-                  <LoginForm 
-                    onSubmit={handleLogin} 
-                    onForgotPassword={() => navigate("/forgot-password")}
-                  />
+                  <LoginForm onSubmit={handleLogin} />
 
                   <div className="mt-8 pt-8 border-t border-slate-50">
                     {accountType === "user" ? (

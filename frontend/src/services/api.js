@@ -1,11 +1,15 @@
 // services/api.js
 import axios from "axios";
 
-export const IMG_URL = window.location.hostname === "localhost" 
-  ? "http://localhost:5000" 
-  : "https://order-management-backend-uqtn.onrender.com"; 
+const origin = (import.meta.env.VITE_API_ORIGIN || "").replace(/\/$/, "");
+const BASE_URL = `${origin}/api`;
 
-const BASE_URL = `${IMG_URL}/api`;
+export function getImageUrl(value) {
+  if (!value) return "";
+  if (/^(https?:|data:)/i.test(value)) return value;
+  const path = value.replace(/\\/g, "/").replace(/^\/+/, "");
+  return `${origin}/${path}`;
+}
 
 const API = axios.create({
   baseURL: BASE_URL,

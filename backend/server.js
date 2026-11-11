@@ -14,7 +14,6 @@ import orderRoutes from "./routes/order.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
@@ -35,17 +34,24 @@ const allowedOrigins = [
   "https://order-management-esny.onrender.com" 
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
+app.use(cors((req, callback) => {
+  const origin = req.get("origin");
+  const host = req.get("host");
+  const allowed = !origin || allowedOrigins.includes(origin) ||
+    origin === `https://${host}` || origin === `http://${host}` ||
+    origin === process.env.CLIENT_URL;
+  callback(null, { origin: allowed, credentials: true });
 }));
+
+app.use("/api", async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("MongoDB connection failed:", error.name);
+    res.status(503).json({ msg: "Database unavailable" });
+  }
+});
 
 // 4. API Routes
 app.use("/api/auth", authRoutes);
@@ -58,4 +64,8 @@ app.use("/api/admin", adminRoutes);
 app.get("/", (req, res) => res.send("B2B API is running..."));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+export default app;

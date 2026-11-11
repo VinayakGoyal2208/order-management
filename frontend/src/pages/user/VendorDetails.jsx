@@ -1,7 +1,7 @@
 import Layout from "../../components/common/Layout";
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import API from "../../services/api";
+import API, { getImageUrl } from "../../services/api";
 import { useCart } from "../../context/useCart";
 import { useAuth } from "../../context/useAuth";
 import SideCart from "../../components/common/SideCart";
@@ -18,34 +18,33 @@ export default function VendorDetails() {
   const { addToCart, cart, updateQuantity, removeFromCart } = useCart();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const vRes = await API.get(`/vendors/all-vendors`);
-        const found = vRes.data.find(v => v._id === id);
-        
-        if (found) {
-          const city = found.city || found.City || "";
-          const state = found.state || found.State || "";
-          
-          const formattedVendor = {
-            ...found,
-            fullAddress: city && state ? `${city}, ${state}` : city || state || "Location not specified",
-            displayLogo: found.logo?.startsWith("http") 
-              ? found.logo 
-              : `http://localhost:5000/${found.logo}`
-          };
-          setVendor(formattedVendor);
-        }
+    const controller = new AbortController();
+    const options = { signal: controller.signal };
+    setLoading(true);
+    setVendor(null);
+    setProducts([]);
 
-        const pRes = await API.get(`/products/${id}`);
-        setProducts(pRes.data);
-      } catch (err) {
-        console.error("Error loading vendor page:", err);
-      } finally {
-        setLoading(false);
+    Promise.allSettled([
+      API.get(`/vendors/${id}`, options),
+      API.get(`/products/${id}`, options),
+    ]).then(([vendorResult, productsResult]) => {
+      if (controller.signal.aborted) return;
+
+      if (vendorResult.status === "fulfilled") {
+        const found = vendorResult.value.data;
+        const city = found.city || found.City || "";
+        const state = found.state || found.State || "";
+        setVendor({
+          ...found,
+          fullAddress: city && state ? `${city}, ${state}` : city || state || "Location not specified",
+          displayLogo: getImageUrl(found.logo),
+        });
       }
-    };
-    fetchData();
+      if (productsResult.status === "fulfilled") setProducts(productsResult.value.data);
+      setLoading(false);
+    });
+
+    return () => controller.abort();
   }, [id]);
 
   const getCartItem = (productId) => cart.find(item => item._id === productId);
@@ -171,6 +170,8 @@ export default function VendorDetails() {
                     <div className="flex flex-col md:flex-row gap-8">
                       <div className="w-full md:w-56 h-56 rounded-[2rem] bg-slate-50 overflow-hidden shrink-0 border border-slate-50">
                         <img 
+                          loading="lazy"
+                          decoding="async"
                           src={p.image} 
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                           alt={p.name} 

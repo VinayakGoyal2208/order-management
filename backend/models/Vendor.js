@@ -46,6 +46,8 @@ const vendorSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
+  logoBytes: { type: Buffer, select: false },
+  logoContentType: { type: String, select: false },
   logo: { 
     type: String,
     default: "" 

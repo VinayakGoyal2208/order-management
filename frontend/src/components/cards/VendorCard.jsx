@@ -1,4 +1,4 @@
-import { ArrowRight, MapPin, Tag } from "lucide-react";
+import { ArrowRight, MapPin, Store, Tag } from "lucide-react";
 
 export default function VendorCard({ vendor, onClick }) {
   // Array of color schemes for the tags
@@ -22,15 +22,20 @@ export default function VendorCard({ vendor, onClick }) {
     >
       {/* 🖼️ Fixed Aspect Ratio Image Container */}
       <div className="relative aspect-[16/10] bg-gray-50 shrink-0 overflow-hidden border-b border-gray-50">
-        <img
-          src={vendor.image}
-          alt={vendor.companyName}
-          className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110"
-          onError={(e) => {
-            e.target.src = "https://via.placeholder.com/400x300?text=No+Image";
-            e.target.className = "w-full h-full object-cover opacity-20 grayscale";
-          }}
-        />
+        <div className="absolute inset-0 grid place-items-center text-slate-300" aria-hidden="true">
+          <Store size={36} />
+        </div>
+        {vendor.image && (
+          <img
+            key={vendor.image}
+            src={vendor.image}
+            alt={vendor.companyName}
+            loading="lazy"
+            decoding="async"
+            className="relative h-full w-full bg-gray-50 object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+            onError={(event) => { event.currentTarget.hidden = true; }}
+          />
+        )}
 
         {/* 🏷️ MULTIPLE CATEGORY TAGS */}
         <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-wrap gap-1.5 max-w-[90%]">

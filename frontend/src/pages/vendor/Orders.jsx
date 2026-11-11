@@ -1,7 +1,6 @@
 import Layout from "../../components/common/Layout";
 import { useEffect, useState } from "react";
-import API from "../../services/api";
-import { IMG_URL } from "../../services/api";
+import API, { getImageUrl } from "../../services/api";
 import {
     Package,
     User,
@@ -51,14 +50,6 @@ export default function VendorOrders() {
         </Layout>
     );
 
-    const getImageUrl = (path) => {
-        if (!path) return "";
-        if (path.startsWith("http") || path.startsWith("data:")) return path;
-
-        const cleanPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
-
-        return `${IMG_URL}/${cleanPath}`;
-    };
 
     return (
         <Layout>

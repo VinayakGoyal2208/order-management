@@ -93,6 +93,11 @@ export default function AddVendor() {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+    if (file?.size > 3 * 1024 * 1024) {
+      e.target.value = "";
+      window.alert("Vendor logos must be 3 MB or smaller.");
+      return;
+    }
     if (file) {
       setForm({ ...form, imageFile: file, image: "" });
       setPreview(URL.createObjectURL(file));
@@ -237,7 +242,7 @@ export default function AddVendor() {
                   <label className="flex-1 h-20 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-white transition-all">
                     <Upload size={18} className="text-slate-300 mb-1" />
                     <span className="text-[9px] font-black text-slate-400 uppercase">Upload</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                    <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileChange} />
                   </label>
                 ) : (
                   <div className="flex-1 relative">

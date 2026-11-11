@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import API from "../../services/api";
+import API, { getImageUrl } from "../../services/api";
 import VendorCard from "../../components/cards/VendorCard";
 import Layout from "../../components/common/Layout";
 import { useNavigate } from "react-router-dom";
@@ -167,9 +167,7 @@ export default function Home() {
                         : (v.category ? v.category.replace(/[\[\]"]/g, '').split(',').map(s => s.trim()) : ["General"]),
                       
                       /* FIXING IMAGE PATHS */
-                      image: v.logo?.startsWith("http") 
-                        ? v.logo 
-                        : (v.logo ? `http://localhost:5000/${v.logo}` : "https://via.placeholder.com/400x300"),
+                      image: getImageUrl(v.logo),
                       
                       address: `${v.city}, ${v.state}`,
                     }}
